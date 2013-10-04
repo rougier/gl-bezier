@@ -29,6 +29,7 @@
 # policies, either expressed or implied, of Nicolas P. Rougier.
 # ----------------------------------------------------------------------------
 import math
+import numpy as np
 
 class CubicBezier(object):
     """
@@ -267,8 +268,9 @@ class CubicBezier(object):
 #        print "t1-/t1+:", t1_minus, t1_plus
 #        print "t2-/t2+:",t2_minus, t2_plus
 
-        # Merge the two domains if they overlap
-#        if t1_minus < t2_minus < t1_plus:
+        # Split the two domaisn if they overlap
+        if t1_minus < t2_minus < t1_plus:
+            t1_plus, t2_minus = t2_minus, t1_plus
 #            t1_plus = max(t1_plus,t2_plus)
 #            t2_minus, t2_plus = +2,+2
 
@@ -566,13 +568,14 @@ if __name__ == '__main__':
         axes.set_xlim(0,size[0])
         axes.set_ylim(0,size[1])
 
-        # P = [200,400, 600,600, 200,600, 600, 400]
         # P = [275, 591, 143, 383, 348, 578, 560, 285]
         # P = [291,612, 533,579, 482,476, 332,175]
         # P = [332,175,482,476,533,579,291,612]
         # P = [145,207,293,238,565,453,564,103]
         # P = [551,198,637,684,417,500,566,573]
         # P = [351,529,291,642,460,333,324,353]
+        # P = [573,157,699,546,101,594,157,589]
+        # P = [200,400, 600,600, 200,600, 600, 400]
         P = np.random.randint(100,700,8)
 
         C = CubicBezier(*P)
