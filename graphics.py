@@ -28,6 +28,7 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Nicolas P. Rougier.
 # ----------------------------------------------------------------------------
+import math
 import matplotlib
 import numpy as np
 matplotlib.rcParams['toolbar'] = 'None'
@@ -87,13 +88,14 @@ def polyarc(arcs, color = 'k', linewidth=1, alpha=1):
     """ """
 
     for arc in arcs:
-        center,radius, angle0, angle1  = arc
+        center,radius, angle0, angle1, negative = arc
         angle0 = 180*angle0/math.pi
         angle1 = 180*angle1/math.pi
-        angle0, angle1 = min(angle0, angle1), max(angle0, angle1)
+        if negative:
+            angle0, angle1 = angle1, angle0
         arc = Arc(center, 2*radius, 2*radius, 0, angle0, angle1,
                   color=color, linewidth = linewidth, alpha=alpha)
-        fig.gca().add_artist(arc)
+        plt.gca().add_artist(arc)
     plt.xticks([])
     plt.yticks([])
 
@@ -127,12 +129,14 @@ if __name__ == '__main__':
         C = CubicBezier(*points)
 
         P = C.flatten_iterative(flatness=.125)
+        A = C.flatten_behdad_arc(0.125)
 
         plt.cla()
         plt.ion()
 
         cubic_bezier(C.p0,C.p1,C.p2,C.p3)
-        polyline(P, linewidth=100, alpha=.25)
+        # polyline(P, linewidth=100, alpha=.25)
+        polyarc(A, linewidth=50, alpha=.25)
 
         plt.ioff()
 
