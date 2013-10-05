@@ -85,19 +85,24 @@ def point_to_arc(p, center, radius, angles):
 
     dx, dy = p[0]-center[0], p[1]-center[1]
     angle0, angle1 = angles
+
+    # angle0 = math.fmod(angle0+2*math.pi,2*math.pi)
+    # angle1 = math.fmod(angle1+2*math.pi,2*math.pi)
+    # if not angle0 <= angle1:
+    #     angle0,angle1 = angle1,angle0
     angle = math.atan2(dy,dx)
     angle = math.fmod(angle+2*math.pi,2*math.pi)
 
     # Distance to implicit circle
-    if angle0 <= angle <= angle1:
-        d = abs(math.sqrt((p[0]-center[0])**2 + (p[1]-center[1])**2) - radius)
-        return d
+    #if angle0 <= angle <= angle1:
+    d = abs(math.sqrt((p[0]-center[0])**2 + (p[1]-center[1])**2) - radius)
+    return d
     
     # Distance to arc limit (points)
-    p0 = center[0]+radius*math.cos(angle0), center[1]+radius*math.sin(angle0)
-    d0 = (p0[0]-p[0])**2 + (p0[1]-p[1])**2
-    p1 = center[0]+radius*math.cos(angle1), center[1]+radius*math.sin(angle1)
-    d1 = (p1[0]-p[0])**2 + (p1[1]-p[1])**2
+    #p0 = center[0]+radius*math.cos(angle0), center[1]+radius*math.sin(angle0)
+    #d0 = (p0[0]-p[0])**2 + (p0[1]-p[1])**2
+    #p1 = center[0]+radius*math.cos(angle1), center[1]+radius*math.sin(angle1)
+    #d1 = (p1[0]-p[0])**2 + (p1[1]-p[1])**2
 
     return math.sqrt(min(d0,d1))
 
@@ -238,16 +243,6 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from cubic_bezier import CubicBezier
 
-    # Measure errors on 10,000 curves
-    # E = []
-    # for i in range(10000):
-    #     p0,p1,p2,p3 = np.random.randint(100,700,(4,2))
-    #     C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
-    #     P = C.flatten_iterative(0.125)
-    #     d = polyline_to_cubic(P, p0, p1, p2, p3, n=100)
-    #     E.append(d)
-
-
     p0,p1,p2,p3 = np.random.randint(100,700,(4,2))
     C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
 
@@ -265,7 +260,6 @@ if __name__ == '__main__':
 
     A = C.flatten_behdad_arc(0.125)
     print polyarc_to_cubic(A, p0, p1, p2, p3, n=100)
-
 
     # # Check distance to arc
     # T = np.linspace(0,2*math.pi,100)
