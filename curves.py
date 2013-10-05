@@ -60,8 +60,8 @@ curve_angle_tolerance_epsilon = 0.01
 curve_recursion_limit         = 32
 m_cusp_limit                  = 0.0
 m_angle_tolerance             = 15*math.pi/180.0
-m_approximation_scale         = .5
-m_distance_tolerance_square   = (0.5 / m_approximation_scale)**2
+m_approximation_scale         = 1.
+m_distance_tolerance_square   = (1.0 / m_approximation_scale)**2
 
 
 # -----------------------------------------------------------------------------
@@ -316,13 +316,21 @@ def curve3_bezier( p1, p2, p3 ):
 
 
 # -----------------------------------------------------------------------------
-def curve4_bezier( p1, p2, p3, p4 ):
+def curve4_bezier( p1, p2, p3, p4, flatness=0.125, angle=15 ):
+    global m_angle_tolerance
+    global m_approximation_scale
+    global m_distance_tolerance_square
+
+    m_angle_tolerance = angle*math.pi/180.0
+    m_approximation_scale = 0.125
+    m_distance_tolerance_square = (flatness / m_approximation_scale)**2
+
     x1,y1 = p1
     x2,y2 = p2
     x3,y3 = p3
     x4,y4 = p4
     points = []
-    curve4_recursive_bezier( points, x1,y1, x2,y2, x3,y3, x4,y4 )
+    curve4_recursive_bezier( points, x1,y1, x2,y2, x3,y3, x4,y4)
 
     dx,dy = points[0][0]-x1, points[0][1]-y1
     if (dx*dx+dy*dy) > 1e-10: points.insert(0, (x1,y1) )
