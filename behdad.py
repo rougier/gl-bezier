@@ -118,7 +118,7 @@ class Arc:
         angle0 = (self.p0 - center).angle ()
         angle1 = (self.p1 - center).angle ()
         negative = self.d < 0
-        return center,radius,angle0,angle1,negative
+        return (center.x,center.y),radius,angle0,angle1,negative
 
     def radius(self):
         return abs((self.p1-self.p0).len() / (2. * sin2atan (self.d)))
