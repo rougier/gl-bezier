@@ -30,10 +30,12 @@
 # ----------------------------------------------------------------------------
 import math
 import numpy as np
+from curves import curve4_bezier
+
 
 class CubicBezier(object):
     """
-    P(t) = (1-t)^3*P0 + 3*(1-t)^2*t*P0 + 3(1-t)*t*t*P2 + t^3*P1
+    P(t) = (1-t)^3*P0 + 3*(1-t)^2*t*P1 + 3(1-t)*t*t*P2 + t^3*P3
     """
 
     def __init__(self, x0=0, y0=0, x1=0, y1=0, x2=0, y2=0, x3=0, y3=0):
@@ -68,13 +70,6 @@ class CubicBezier(object):
         return (a*self.x0 + b*self.x1 + c*self.x2 + d*self.x3,
                 a*self.y0 + b*self.y1 + c*self.y2 + d*self.y3)
         
-    def reverse(self):
-        """
-        """
-        return CubicBezier(self.x3, self.y3, self.x2, self.y2,
-                           self.x1, self.y1, self.x0, self.y0)
-                            
-
     def split(self, t):
         """
         Split curve at t into left and right cubic bezier curves
@@ -108,32 +103,6 @@ class CubicBezier(object):
         left,_= right.split((t2-t1)/(1-t1))
         return left
 
-    def cut_left(self, t):
-        left = CubicBezier()
-
-        left.x0 = self.x0
-        left.y0 = self.y0
-
-        left.x1 = self.x0 + t * ( self.x1 - self.x0 )
-        left.y1 = self.y0 + t * ( self.y1 - self.y0 )
-
-        left.x2 = self.x1 + t * ( self.x2 - self.x1 ) # temporary holding spot
-        left.y2 = self.y1 + t * ( self.y2 - self.y1 ) # temporary holding spot
-
-        self.x2 = self.x2 + t * ( self.x3 - self.x2 )
-        self.y2 = self.y2 + t * ( self.y3 - self.y2 )
-
-        self.x1 = left.x2 + t * ( self.x2 - left.x2)
-        self.y1 = left.y2 + t * ( self.y2 - left.y2)
-
-        left.x2 = left.x1 + t * ( left.x2 - left.x1 )
-        left.y2 = left.y1 + t * ( left.y2 - left.y1 )
-
-        left.x3 = self.x0 = left.x2 + t * (self.x1 - left.x2)
-        left.y3 = self.y0 = left.y2 + t * (self.y1 - left.y2)
-
-        return left
-
 
     def inflection_points(self):
         """
@@ -165,7 +134,11 @@ class CubicBezier(object):
         ay = -right.y0 + 3*right.y1 - 3*right.y2 + right.y3
         ex = 3 * (right.x1 - right.x2)
         ey = 3 * (right.y1 - right.y2)
-        s4 = abs(6. * (ey * ax - ex * ay) / math.sqrt(ex * ex + ey * ey))
+        ex2ey2 = ex * ex + ey * ey
+        if not ex2ey2:
+            return t,t
+
+        s4 = abs(6. * (ey * ax - ex * ay) / math.sqrt(ex2ey2))
         tf = math.pow(9. * flatness / s4, 1./3.)
         return t-tf*(1-t), t+tf*(1-t)
 
@@ -179,9 +152,8 @@ class CubicBezier(object):
             da2 = 2*math.pi - da2
         return da1 + da2
 
-    def flatten(self, flatness=0.25):
-        m_angle_tolerance = 15*math.pi/180.0
-
+    def flatten(self, flatness=0.25, angle=15):
+        angle *= math.pi/180.0
 
         P = []
         while 1:
@@ -193,21 +165,22 @@ class CubicBezier(object):
             s3 = (self.x2-self.x0)*(self.y1-self.y0)-(self.y2-self.y0)*(self.x1-self.x0)
             s3 = abs(s3)/norm
             t = 2*math.sqrt(flatness /(3*s3))
-            #d = abs(dx * (self.y2 - self.y1) - dy * (self.x2 - self.x1)) + 0.00001
-            #t = 2*math.sqrt(flatness* norm/(3*d))
+
             if t > 1:
                 break
+
+            # Check angle is below tolerance
             for i in range(10):
                 left, right = self.split(t)
-                if left.angle() > m_angle_tolerance:
+                if left.angle() > angle:
                     t /= 2.
                 else:
                     break
+
             self.x0, self.y0 = right.x0, right.y0
             self.x1, self.y1 = right.x1, right.y1
             self.x2, self.y2 = right.x2, right.y2
             self.x3, self.y3 = right.x3, right.y3
-            # self.cut_left(t)
 
             P.append((self.x0, self.y0))
         return P
@@ -239,8 +212,11 @@ class CubicBezier(object):
         P.append((self.x3,self.y3))
         return P
 
+    def flatten_recursive(self,flatness=0.125, angle=15):
+        return curve4_bezier(self.p0, self.p1, self.p2, self.p3, flatness, angle)
 
-    def flatten_iterative(self, flatness=0.125):
+
+    def flatten_iterative(self, flatness=0.125, angle=15):
         """
         Adapted from: Precise Flattening of Cubic Bézier Segments
                       Thomas F. Hain, Athar L. Ahmad, David D. Langan
@@ -304,31 +280,31 @@ class CubicBezier(object):
 
         # No inflection points
         if t1_out and t2_out:
-            points += tmp.flatten(flatness)
+            points += tmp.flatten(flatness,angle)
 
         # One inflection point
         elif (t1_in or t1_cross) and t2_out:
             if t1_cross_start:
                 points.append( self(t1_plus) )
                 _,right = self.split(t1_plus)
-                points += right.flatten(flatness)
+                points += right.flatten(flatness,angle)
             elif t1_cross_end:
                 left,_ = self.split(t1_minus)
-                points += left.flatten(flatness)
+                points += left.flatten(flatness,angle)
                 points.append( self(t1_minus) )
             else:
                 left,_ = self.split(t1_minus)
                 _,right = self.split(t1_plus)
-                points += left.flatten(flatness)
+                points += left.flatten(flatness, angle)
                 points.append( self(t1_minus) )
                 points.append( self(t1_plus) )
-                points += right.flatten(flatness)
+                points += right.flatten(flatness, angle)
 
         # Two inflection points
         elif (t1_in or t1_cross_start) and (t2_in or t2_cross_end):
             if not t1_cross_start:
                 left,_ = self.split(t1_minus)
-                points += left.flatten(flatness)
+                points += left.flatten(flatness, angle)
                 points.append( self(t1_minus) )
             if t1_t2_cross:
                 points.append( self(t2_minus) )
@@ -336,13 +312,13 @@ class CubicBezier(object):
             else:
                 points.append( self(t1_plus) )
                 middle = self.extract(t1_plus,t2_minus)
-                points += middle.flatten(flatness)
+                points += middle.flatten(flatness, angle)
                 points.append( self(t2_minus) )
 
             if not t2_cross_end:
                 points.append( self(t2_plus) )
                 _,right = self.split(t2_plus)
-                points += right.flatten(flatness)
+                points += right.flatten(flatness, angle)
 
         points.append( (self.x3, self.y3) )
         return points
@@ -594,8 +570,6 @@ if __name__ == '__main__':
         line_plot(P, lw=150, edgecolor='k', alpha=.1)
         #plt.plot(P[:,0], P[:,1], lw=150, color='k', alpha=.1)
         plt.scatter(P[:,0], P[:,1], s=5, color='r', zorder=40)
-
-
 
         # P = C.flatten_behdad_segment(flatness=.125)
         # mean,std = measure(C,P)
