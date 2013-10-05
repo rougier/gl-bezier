@@ -28,146 +28,239 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Nicolas P. Rougier.
 # ----------------------------------------------------------------------------
-import math
+import os.path
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+from matplotlib.ticker import MultipleLocator
+
+import distance
 from cubic_bezier import CubicBezier
-from curves import curve4_bezier
 
 
-def point_line_distance(x1,y1, x2,y2, x3,y3): # x3,y3 is the point
-    """ """
-
-    px,py = x2-x1, y2-y1
-    d = px*px + py*py
-    u =  ((x3 - x1) * px + (y3 - y1) * py) / float(d)
-    if u > 1:   u = 1
-    elif u < 0: u = 0
-    x,y = x1 + u * px, y1 + u * py
-    dx, dy = x - x3, y - y3
-    return math.sqrt(dx*dx + dy*dy)
-
-def measure_error_polylines(samples=10000, n=100, flatness=0.125):
-    """ """
-
-    E = np.zeros((samples,3+8))
-    for k in range(samples):
-        points = np.random.randint(100,700,8)
-        bezier = CubicBezier(*points)
-        segments = bezier.flatten_iterative(flatness=flatness)
-        D = np.zeros(n)
-        for i,t in enumerate(np.linspace(0,1,n,endpoint=True)):
-            x,y = bezier(t)
-            dmin = 1e9
-            for j in range(len(segments)-1):
-                x1,y1 = segments[j]
-                x2,y2 = segments[j+1]
-                dmin = min(dmin,point_line_distance(x1,y1,x2,y2,x,y))
-            D[i] = dmin
-        E[k][0] = D.mean()
-        E[k][1] = D.std()
-        E[k][2] = len(segments)
-        E[k][3:] = points
-
-        if E[k][0] > 1.0:
-            print E[k][0], points
-
-    return E
+# Measure errors on 10,000 curves
+curves = np.random.randint(100,700,(10000,4,2))
+flatness = 0.125
+angle = 15
+n1, n2 = 25, 50
 
 
-def measure_error_polylines(samples=10000, n=100, flatness=0.125):
-    """ """
-
-    E = np.zeros((samples,3+8))
-    for k in range(samples):
-        points = np.random.randint(100,700,8)
-        bezier = CubicBezier(*points)
-
-        # segments = bezier.flatten_iterative(flatness=flatness)
-        # segments = curve4_bezier(bezier.p0, bezier.p1, bezier.p2, bezier.p3)
-        segments = bezier.flatten_forward_iterative(n=25)
-
-        D = np.zeros(n)
-        for i,t in enumerate(np.linspace(0,1,n,endpoint=True)):
-            x,y = bezier(t)
-            dmin = 1e9
-            for j in range(len(segments)-1):
-                x1,y1 = segments[j]
-                x2,y2 = segments[j+1]
-                dmin = min(dmin,point_line_distance(x1,y1,x2,y2,x,y))
-            D[i] = dmin
-        E[k][0] = D.mean()
-        E[k][1] = D.std()
-        E[k][2] = len(segments)
-        E[k][3:] = points
-
-        if E[k][0] > 1.0:
-            print E[k][0], points
-
-    return E
+# Forward method, n=25
+# -------------------------------------
+filename = 'forward-iterative-25.npy'
+if not os.path.exists(filename):
+    print "Computing", filename
+    E = []
+    for i in range(10000):
+        p0,p1,p2,p3 = curves[i]
+        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        P = C.flatten_forward_iterative(n=n1)
+        d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
+        E.append(d)
+    np.save(filename, E)
+else:
+    print "Loading", filename
+    E1 = np.load(filename)
 
 
-# E = measure_error_polylines(samples=10000, n=100, flatness=.125)
-# np.save('flatten_iterative_error_s10000_n100_f0125.npy', E)
-# E = np.load('flatten_iterative_error_s10000_n100_f0125.npy')
+# Forward method, n=50
+# -------------------------------------
+filename = 'forward-iterative-50.npy'
+if not os.path.exists(filename):
+    print "Computing", filename
+    E = []
+    for i in range(10000):
+        p0,p1,p2,p3 = curves[i]
+        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        P = C.flatten_forward_iterative(n=n2)
+        d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
+        E.append(d)
+    np.save(filename, E)
+else:
+    print "Loading", filename
+    E2 = np.load(filename)
 
-# E = measure_error_polylines(samples=10000, n=100, flatness=.125)
-# np.save('flatten_recursive_error_s10000_n100_f0125.npy', E)
-# E = np.load('flatten_recursive_error_s10000_n100_f0125.npy')
+# Smart iterative
+# -------------------------------------
+filename = 'smart-iterative.npy'
+if not os.path.exists(filename):
+    print "Computing", filename
+    E = []
+    for i in range(10000):
+        p0,p1,p2,p3 = curves[i]
+        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        P = C.flatten_iterative(flatness=flatness, angle=angle)
+        d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
+        E.append(d)
+    np.save(filename, E)
+else:
+    print "Loading", filename
+    E3 = np.load(filename)
 
-# E = measure_error_polylines(samples=10000, n=100, flatness=.125)
-# np.save('flatten_forward_error_s10000_n100_n25.npy', E)
-# E = np.load('flatten_forward_error_s10000_n100_n25.npy')
-E = np.load('flatten_forward_error_s10000_n100_n50.npy')
+# Recursive
+# -------------------------------------
+filename = 'recursive.npy'
+if not os.path.exists(filename):
+    print "Computing", filename
+    E = []
+    for i in range(10000):
+        p0,p1,p2,p3 = curves[i]
+        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        P = C.flatten_recursive(flatness=flatness, angle=angle)
+        d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
+        E.append(d)
+    np.save(filename, E)
+else:
+    print "Loading", filename
+    E4 = np.load(filename)
 
 
-fg = 0.0,0.0,0.0
-bg = 1.0,1.0,1.0
-matplotlib.rcParams['xtick.major.width'] = .5
-matplotlib.rcParams['ytick.major.width'] = .5
-matplotlib.rcParams['xtick.direction'] = 'out'
-matplotlib.rcParams['ytick.direction'] = 'out'
-matplotlib.rcParams['font.size'] = 12.0
-matplotlib.rc('axes', facecolor = bg)
-matplotlib.rc('axes', edgecolor = fg)
-matplotlib.rc('xtick', color = fg)
-matplotlib.rc('ytick', color = fg)
-matplotlib.rc('figure', facecolor = bg)
-matplotlib.rc('savefig', facecolor = bg)
+# Arcs
+# -------------------------------------
+filename = 'arc-iterative.npy'
+if not os.path.exists(filename):
+    print "Computing", filename
+    E = []
+    for i in range(10000):
+        p0,p1,p2,p3 = curves[i]
+        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        P = C.flatten_behdad_arc(flatness=flatness)
+        d = distance.polyarc_to_cubic(P, p0, p1, p2, p3, n=100)
+        E.append(d)
+    np.save(filename, E)
+else:
+    print "Loading", filename
+    E5 = np.load(filename)
 
 
-fig = plt.figure(figsize=(12,6), dpi=72)
-ax = plt.subplot(111, axisbelow=True)
-ax.spines['bottom'].set_position(('data',-5))
+def histogram_error(E, title):
+    fg = 0.0,0.0,0.0
+    bg = 1.0,1.0,1.0
+    matplotlib.rcParams['xtick.major.width'] = .5
+    matplotlib.rcParams['ytick.major.width'] = .5
+    matplotlib.rcParams['xtick.direction'] = 'out'
+    matplotlib.rcParams['ytick.direction'] = 'out'
+    matplotlib.rcParams['font.size'] = 12.0
+    matplotlib.rc('axes', facecolor = bg)
+    matplotlib.rc('axes', edgecolor = fg)
+    matplotlib.rc('xtick', color = fg)
+    matplotlib.rc('ytick', color = fg)
+    matplotlib.rc('figure', facecolor = bg)
+    matplotlib.rc('savefig', facecolor = bg)
 
-plt.hist(E[:,0],range=(0.0,0.16), bins=50, edgecolor='w', facecolor='.5')
+
+    fig = plt.figure(figsize=(12,6), dpi=72)
+    ax = plt.subplot(111, axisbelow=True)
+    ax.spines['bottom'].set_position(('data',-5))
+
+    plt.hist(E[:,0],range=(0.0,0.16), bins=50, edgecolor='w', facecolor='.5')
+
+    ax.spines['right'].set_color('none')
+    ax.spines['left'].set_color('none')
+    ax.spines['top'].set_color('none')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_yticks([])
+
+    plt.xlim(0.0, 0.16)
+    plt.ylim(0, 2600)
+
+    ax.yaxis.set_major_locator(MultipleLocator(500))
+    ax.grid(which='major', axis='y', linewidth=0.75, linestyle='-', color='0.75')
+    [t.set_color('0.5') for t in ax.xaxis.get_ticklabels()]
+    [t.set_color('0.5') for t in ax.yaxis.get_ticklabels()]
+    [t.set_alpha(0.0) for t in ax.yaxis.get_ticklines()]
+
+    plt.text(0.16,2520, title,
+             va='bottom',ha='right', color='0.0', fontsize=16)
+    plt.text(0.16,2475, 'Mean error over 10,000 curves',
+             va='top',ha='right', color='.5', fontsize=12)
+
+    M = E[:,0].mean()
+
+    plt.axvline(x=M,ymin=0,ymax=2600, color='0.5',lw=.75,zorder=-1,ls='--')
+    plt.text(0.0,2510, '# Curves', va='bottom',ha='left', color='.5', fontsize=12)
+    return fig
 
 
-ax.spines['right'].set_color('none')
-ax.spines['left'].set_color('none')
-ax.spines['top'].set_color('none')
-ax.xaxis.set_ticks_position('bottom')
-ax.yaxis.set_ticks_position('left')
-ax.set_yticks([])
+def histogram_length(E, title):
+    fg = 0.0,0.0,0.0
+    bg = 1.0,1.0,1.0
+    matplotlib.rcParams['xtick.major.width'] = .5
+    matplotlib.rcParams['ytick.major.width'] = .5
+    matplotlib.rcParams['xtick.direction'] = 'out'
+    matplotlib.rcParams['ytick.direction'] = 'out'
+    matplotlib.rcParams['font.size'] = 12.0
+    matplotlib.rc('axes', facecolor = bg)
+    matplotlib.rc('axes', edgecolor = fg)
+    matplotlib.rc('xtick', color = fg)
+    matplotlib.rc('ytick', color = fg)
+    matplotlib.rc('figure', facecolor = bg)
+    matplotlib.rc('savefig', facecolor = bg)
 
-plt.xlim(0.0, 0.16)
-plt.ylim(0, 2600)
 
-ax.yaxis.set_major_locator(MultipleLocator(500))
-ax.grid(which='major', axis='y', linewidth=0.75, linestyle='-', color='0.75')
-[t.set_color('0.5') for t in ax.xaxis.get_ticklabels()]
-[t.set_color('0.5') for t in ax.yaxis.get_ticklabels()]
-[t.set_alpha(0.0) for t in ax.yaxis.get_ticklines()]
-plt.text(0.16,2520, 'Brute iterative (n=50)',
-                    va='bottom',ha='right', color='0.0', fontsize=16)
-plt.text(0.16,2475, 'Mean error over 10,000 curves',
-                    va='top',ha='right', color='.5', fontsize=12)
+    fig = plt.figure(figsize=(12,6), dpi=72)
+    ax = plt.subplot(111, axisbelow=True)
+    ax.spines['bottom'].set_position(('data',-5))
 
-#M = E[:,0].mean()
-#plt.axvline(x=M,ymin=0,ymax=2600, color='0.5',lw=.75,zorder=-1,ls='--')
+    plt.hist(E[:,2], bins=15, edgecolor='w', facecolor='.5')
 
-plt.text(0.0,2510, '# Curves', va='bottom',ha='left', color='.5', fontsize=12)
-fig.savefig("forward-iterative-50.pdf", dpi=72)
+    ax.spines['right'].set_color('none')
+    ax.spines['left'].set_color('none')
+    ax.spines['top'].set_color('none')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_yticks([])
+
+    plt.xlim(0, 60)
+    plt.ylim(0, 2250)
+
+    ax.yaxis.set_major_locator(MultipleLocator(200))
+    ax.grid(which='major', axis='y', linewidth=0.75, linestyle='-', color='0.75')
+    [t.set_color('0.5') for t in ax.xaxis.get_ticklabels()]
+    [t.set_color('0.5') for t in ax.yaxis.get_ticklabels()]
+    [t.set_alpha(0.0) for t in ax.yaxis.get_ticklines()]
+
+    plt.text(60,2220, title,
+             va='bottom',ha='right', color='0.0', fontsize=16)
+    plt.text(60,2190, 'Mean size over 10,000 curves',
+             va='top',ha='right', color='.5', fontsize=12)
+    M = E[:,2].mean()
+    plt.axvline(x=M,ymin=0,ymax=2600, color='0.5',lw=.75,zorder=-1,ls='--')
+    plt.text(0.0,2190, '# Curves', va='top',ha='left', color='.5', fontsize=12)
+    return fig
+
+
+
+fig = histogram_length(E3, "Smart iterative")
+fig.savefig("smart-iterative-size.pdf", dpi=72)
 plt.show()
+
+fig = histogram_length(E4, "Recursive (agg)")
+fig.savefig("recursive-size.pdf", dpi=72)
+plt.show()
+
+fig = histogram_length(E5, "Arc iterative (glyphy)")
+fig.savefig("arc-iterative-size.pdf", dpi=72)
+plt.show()
+
+
+# fig = histogram_error(E1, "Forward iterative (n=25)")
+# fig.savefig("forwar-iterative-25-error.pdf", dpi=72)
+# plt.show()
+
+# fig = histogram_error(E2, "Forward iterative (n=50)")
+# fig.savefig("forwar-iterative-50-error.pdf", dpi=72)
+# plt.show()
+
+# fig = histogram_error(E3, "Smart iterative")
+# fig.savefig("smart-iterative-error.pdf", dpi=72)
+# plt.show()
+
+# fig = histogram_error(E4, "Recursive (agg)")
+# fig.savefig("recursive-error.pdf", dpi=72)
+# plt.show()
+
+# fig = histogram_error(E5, "Arc iterative (glyphy)")
+# fig.savefig("arc-iterative-error.pdf", dpi=72)
+# plt.show()
