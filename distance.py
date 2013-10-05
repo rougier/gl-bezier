@@ -86,6 +86,7 @@ def point_to_arc(p, center, radius, angles):
     dx, dy = p[0]-center[0], p[1]-center[1]
     angle0, angle1 = angles
     angle = math.atan2(dy,dx)
+    angle = math.fmod(angle+2*math.pi,2*math.pi)
 
     # Distance to implicit circle
     if angle0 <= angle <= angle1:
@@ -223,7 +224,7 @@ def polyarc_to_cubic(arcs, p0, p1, p2, p3, n=100):
         for arc in arcs:
             center,radius,angle0,angle1,negative = arc
             if negative:
-                angle0, angle1 = angle1, angle0
+               angle0, angle1 = angle1, angle0
             d = point_to_arc(p, center, radius, (angle0,angle1))
             dmin = min(d,dmin)
         D[i] = dmin
@@ -237,6 +238,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from cubic_bezier import CubicBezier
 
+    # Measure errors on 10,000 curves
     # E = []
     # for i in range(10000):
     #     p0,p1,p2,p3 = np.random.randint(100,700,(4,2))
@@ -252,6 +254,9 @@ if __name__ == '__main__':
     P = C.flatten_forward_iterative(n=25)
     print polyline_to_cubic(P, p0, p1, p2, p3, n=100)
 
+    P = C.flatten_forward_iterative(n=50)
+    print polyline_to_cubic(P, p0, p1, p2, p3, n=100)
+
     P = C.flatten_iterative(0.125)
     print polyline_to_cubic(P, p0, p1, p2, p3, n=100)
 
@@ -261,3 +266,11 @@ if __name__ == '__main__':
     A = C.flatten_behdad_arc(0.125)
     print polyarc_to_cubic(A, p0, p1, p2, p3, n=100)
 
+
+    # # Check distance to arc
+    # T = np.linspace(0,2*math.pi,100)
+    # for t in T:
+    #     x,y = math.cos(t), math.sin(t)
+    #     angle = math.atan2(y,x)
+    #     angle = math.fmod(angle+2*math.pi,2*math.pi)
+    #     print 180*t/math.pi, point_to_arc((x,y), (0,0), 1, (0, math.pi/2))
