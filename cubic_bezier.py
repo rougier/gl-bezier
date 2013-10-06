@@ -212,6 +212,57 @@ class CubicBezier(object):
         P.append((self.x3,self.y3))
         return P
 
+    def flatten_forward_iterative_variable(self):
+        """
+        """
+
+        d1 = np.sqrt(((self.p1-self.p0)**2).sum())
+        d2 = np.sqrt(((self.p2-self.p1)**2).sum())
+        d3 = np.sqrt(((self.p3-self.p2)**2).sum())
+        n = int((d1+d2+d3)*0.05)
+
+
+        h = 1.0 / n;
+        fph = 3 * (self.p1 - self.p0) * h
+        fpphh = (6 * self.p0 - 12 * self.p1 + 6 * self.p2) * h * h
+        fppphhh = (-6 * self.p0 + 18 * self.p1 - 18 * self.p2 + 6 * self.p3) * h * h * h
+        P = [(self.x0,self.y0)]
+        p = np.array([self.x0,self.y0])
+        for i in range(1,n-1):
+            p += fph + fpphh/2. + fppphhh/6.
+            P.append((p[0],p[1]))
+            fph = fph + fpphh + fppphhh/2.
+            fpphh = fpphh + fppphhh
+        P.append((self.x3,self.y3))
+        return P
+
+
+    def flatten_forward_iterative_variable_2(self):
+        """
+        """
+
+        d1 = np.sqrt(((self.p1-self.p0)**2).sum())
+        d2 = np.sqrt(((self.p2-self.p1)**2).sum())
+        d3 = np.sqrt(((self.p3-self.p2)**2).sum())
+        d4 = np.sqrt(((self.p0-self.p3)**2).sum())
+        d = d1+d2+d3+d4
+        f = max((d-d4)/float(d),.5)
+        n = 20 + int(80 * (f-0.5))
+
+        h = 1.0 / n;
+        fph = 3 * (self.p1 - self.p0) * h
+        fpphh = (6 * self.p0 - 12 * self.p1 + 6 * self.p2) * h * h
+        fppphhh = (-6 * self.p0 + 18 * self.p1 - 18 * self.p2 + 6 * self.p3) * h * h * h
+        P = [(self.x0,self.y0)]
+        p = np.array([self.x0,self.y0])
+        for i in range(1,n-1):
+            p += fph + fpphh/2. + fppphhh/6.
+            P.append((p[0],p[1]))
+            fph = fph + fpphh + fppphhh/2.
+            fpphh = fpphh + fppphhh
+        P.append((self.x3,self.y3))
+        return P
+
     def flatten_recursive(self,flatness=0.125, angle=15):
         return curve4_bezier(self.p0, self.p1, self.p2, self.p3, flatness, angle)
 
@@ -241,14 +292,9 @@ class CubicBezier(object):
         if T[1]:
             t2_minus, t2_plus = self.inflection_domain(T[1], flatness)
 
-#        print "t1-/t1+:", t1_minus, t1_plus
-#        print "t2-/t2+:",t2_minus, t2_plus
-
         # Split the two domaisn if they overlap
         if t1_minus < t2_minus < t1_plus:
             t1_plus, t2_minus = t2_minus, t1_plus
-#            t1_plus = max(t1_plus,t2_plus)
-#            t2_minus, t2_plus = +2,+2
 
         t1_out = t1_plus < 0 or t1_minus > 1
         t2_out = t2_plus < 0 or t2_minus > 1

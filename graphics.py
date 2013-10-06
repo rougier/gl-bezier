@@ -120,6 +120,7 @@ def figure(width=800, height=800, on_key=None):
 
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
+    from distance import interpolate_path, polyline_to_cubic
     from cubic_bezier import CubicBezier
 
 
@@ -128,18 +129,38 @@ if __name__ == '__main__':
         points = np.random.randint(100,700,8)
         C = CubicBezier(*points)
 
-        P = C.flatten_iterative(flatness=.125)
-        A = C.flatten_behdad_arc(0.125)
-
         plt.cla()
         plt.ion()
 
         cubic_bezier(C.p0,C.p1,C.p2,C.p3)
+
+        # P = C.flatten_forward_iterative(n=50)
+        # P = np.array(P)
         # polyline(P, linewidth=100, alpha=.25)
-        polyarc(A, linewidth=50, alpha=.25)
+        # plt.scatter(P[:,0], P[:,1], s=25,
+        #             edgecolor='k', facecolor='w', zorder=10, lw=.5)
+
+        # P = C.flatten_iterative(flatness=.125/2, angle=10)
+        # P = np.array(P)
+        # polyline(P, linewidth=100, alpha=.25)
+        # plt.scatter(P[:,0], P[:,1], s=25,
+        #              edgecolor='k', facecolor='w', zorder=10, lw=.5)
+
+        P = C.flatten_recursive(flatness=.25, angle=10)
+        P = np.array(P)
+        print len(P)
+        polyline(P, linewidth=100, alpha=.25)
+        plt.scatter(P[:,0], P[:,1], s=25,
+                     edgecolor='k', facecolor='w', zorder=10, lw=.5)
+
+        #A = C.flatten_behdad_arc(0.125)
+        #polyarc(A, linewidth=50, alpha=.25)
+
+        
 
         plt.ioff()
 
     fig = figure(on_key=on_key)
     plt.ioff()
     plt.show()
+

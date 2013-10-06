@@ -41,8 +41,6 @@ flatness = 0.125
 angle = 15
 n1, n2 = 25, 50
 
-
-
 # Forward method, n=25
 # -------------------------------------
 t_start = time.clock()
