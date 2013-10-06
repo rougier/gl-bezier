@@ -138,7 +138,7 @@ def interpolate_path(points, n=100):
     length = C[-1]
 
     # Interpolate
-    T = np.linspace(0,1,n,endpoint=True)
+    T = np.linspace(0,length,n,endpoint=True)
 
     P_ = np.zeros((n,2))
     P_[:,0] = np.interp(T,C,X)
