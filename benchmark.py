@@ -28,6 +28,7 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Nicolas P. Rougier.
 # ----------------------------------------------------------------------------
+import sys
 import os.path
 import numpy as np
 import matplotlib
@@ -39,10 +40,40 @@ from cubic_bezier import CubicBezier
 
 
 # Measure errors on 10,000 curves
+np.random.seed(1)
 curves = np.random.randint(100,700,(10000,4,2))
 flatness = 0.125
 angle = 15
 n1, n2 = 25, 50
+
+
+# -------------------------------------
+def update_progress(progress):
+    """
+    Displays or updates a console progress bar
+
+    Accepts a float between 0 and 1. Any int will be converted to a float.
+    A value under 0 represents a 'halt'.
+    A value at 1 or bigger represents 100%
+    """
+
+    barLength = 50
+    status = ""
+    if isinstance(progress, int):
+        progress = float(progress)
+    if not isinstance(progress, float):
+        progress = 0
+        status = "Error: progress var must be float\r\n"
+    if progress < 0:
+        progress = 0
+        status = "Halt...\r\n"
+    if progress >= 1:
+        progress = 1
+        status = "Done...\r\n"
+    block = int(round(barLength*progress))
+    text = "\rProgress: [%s] %.2f%% %s" % ("="*block + " "*(barLength-block), progress*100, status)
+    sys.stdout.write(text)
+    sys.stdout.flush()
 
 
 # Forward method, n=25
@@ -50,14 +81,16 @@ n1, n2 = 25, 50
 filename = 'forward-iterative-25.npy'
 if not os.path.exists(filename):
     print "Computing", filename
-    E = []
+    E1 = []
     for i in range(10000):
+        update_progress(i/10000.)
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_forward_iterative(n=n1)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
-        E.append(d)
-    np.save(filename, E)
+        E1.append(d)
+    update_progress(1)
+    np.save(filename, E1)
 else:
     print "Loading", filename
     E1 = np.load(filename)
@@ -68,14 +101,16 @@ else:
 filename = 'forward-iterative-50.npy'
 if not os.path.exists(filename):
     print "Computing", filename
-    E = []
+    E2 = []
     for i in range(10000):
+        update_progress(i/10000.)
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_forward_iterative(n=n2)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
-        E.append(d)
-    np.save(filename, E)
+        E2.append(d)
+    update_progress(1)
+    np.save(filename, E2)
 else:
     print "Loading", filename
     E2 = np.load(filename)
@@ -85,14 +120,16 @@ else:
 filename = 'smart-iterative.npy'
 if not os.path.exists(filename):
     print "Computing", filename
-    E = []
+    E3 = []
     for i in range(10000):
+        update_progress(i/10000.)
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_iterative(flatness=flatness, angle=angle)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
-        E.append(d)
-    np.save(filename, E)
+        E3.append(d)
+    update_progress(1)
+    np.save(filename, E3)
 else:
     print "Loading", filename
     E3 = np.load(filename)
@@ -102,14 +139,16 @@ else:
 filename = 'recursive.npy'
 if not os.path.exists(filename):
     print "Computing", filename
-    E = []
+    E4 = []
     for i in range(10000):
+        update_progress(i/10000.)
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_recursive(flatness=flatness, angle=angle)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
-        E.append(d)
-    np.save(filename, E)
+        E4.append(d)
+    update_progress(1)
+    np.save(filename, E4)
 else:
     print "Loading", filename
     E4 = np.load(filename)
@@ -120,14 +159,16 @@ else:
 filename = 'arc-iterative.npy'
 if not os.path.exists(filename):
     print "Computing", filename
-    E = []
+    E5 = []
     for i in range(10000):
+        update_progress(i/10000.)
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_behdad_arc(flatness=flatness)
         d = distance.polyarc_to_cubic(P, p0, p1, p2, p3, n=100)
-        E.append(d)
-    np.save(filename, E)
+        E5.append(d)
+    update_progress(1)
+    np.save(filename, E5)
 else:
     print "Loading", filename
     E5 = np.load(filename)
@@ -213,7 +254,7 @@ def histogram_length(E, title):
     ax.set_yticks([])
 
     plt.xlim(0, 60)
-    plt.ylim(0, 2250)
+    plt.ylim(0, 2450)
 
     ax.yaxis.set_major_locator(MultipleLocator(200))
     ax.grid(which='major', axis='y', linewidth=0.75, linestyle='-', color='0.75')
@@ -221,29 +262,27 @@ def histogram_length(E, title):
     [t.set_color('0.5') for t in ax.yaxis.get_ticklabels()]
     [t.set_alpha(0.0) for t in ax.yaxis.get_ticklines()]
 
-    plt.text(60,2220, title,
+    plt.text(60,2420, title,
              va='bottom',ha='right', color='0.0', fontsize=16)
-    plt.text(60,2190, 'Mean size over 10,000 curves',
+    plt.text(60,2390, 'Mean size over 10,000 curves',
              va='top',ha='right', color='.5', fontsize=12)
     M = E[:,2].mean()
     plt.axvline(x=M,ymin=0,ymax=2600, color='0.5',lw=.75,zorder=-1,ls='--')
-    plt.text(0.0,2190, '# Curves', va='top',ha='left', color='.5', fontsize=12)
+    plt.text(0.0,2390, '# Curves', va='top',ha='left', color='.5', fontsize=12)
     return fig
 
 
+# fig = histogram_length(E3, "Smart iterative")
+# fig.savefig("smart-iterative-size.pdf", dpi=72)
+# plt.show()
 
-fig = histogram_length(E3, "Smart iterative")
-fig.savefig("smart-iterative-size.pdf", dpi=72)
-plt.show()
+# fig = histogram_length(E4, "Recursive (agg)")
+# fig.savefig("recursive-size.pdf", dpi=72)
+# plt.show()
 
-fig = histogram_length(E4, "Recursive (agg)")
-fig.savefig("recursive-size.pdf", dpi=72)
-plt.show()
-
-fig = histogram_length(E5, "Arc iterative (glyphy)")
-fig.savefig("arc-iterative-size.pdf", dpi=72)
-plt.show()
-
+# fig = histogram_length(E5, "Arc iterative (glyphy)")
+# fig.savefig("arc-iterative-size.pdf", dpi=72)
+# plt.show()
 
 # fig = histogram_error(E1, "Forward iterative (n=25)")
 # fig.savefig("forwar-iterative-25-error.pdf", dpi=72)
