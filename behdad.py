@@ -85,7 +85,7 @@ class Vector:
         return Vector(self.dx/s, self.dy/s)
 
     def len (self):
-        return math.sqrt (self.dx * self.dx + self.dy * self.dy)
+        return math.hypot (self.dx, self.dy)
 
     def angle (self):
         return math.atan2 (self.dy, self.dx)
