@@ -88,7 +88,7 @@ def polyarc(arcs, color = 'b', linewidth=1, alpha=1):
     """ """
 
     for arc in arcs:
-        center,radius, angle0, angle1, negative = arc
+        center,radius, angle0, angle1, negative, a = arc
         angle0 = 180*angle0/math.pi
         angle1 = 180*angle1/math.pi
         if negative:

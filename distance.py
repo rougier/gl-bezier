@@ -217,6 +217,8 @@ def polyarc_to_cubic(arcs, p0, p1, p2, p3, n=100):
         cubic Bézier points
     """
 
+    import behdad
+
     # Sample n points on cubic
     P = interpolate_cubic(p0,p1,p2,p3,n)
 
@@ -227,10 +229,10 @@ def polyarc_to_cubic(arcs, p0, p1, p2, p3, n=100):
     for i,p in enumerate(P):
         dmin = 1e9
         for arc in arcs:
-            center,radius,angle0,angle1,negative = arc
+            center,radius,angle0,angle1,negative,a = arc
             if negative:
                angle0, angle1 = angle1, angle0
-            d = point_to_arc(p, center, radius, (angle0,angle1))
+            d = a.distance_to_point (behdad.Point(*p))
             dmin = min(d,dmin)
         D[i] = dmin
     return D.mean(), D.std(), len(arcs)

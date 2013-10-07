@@ -75,6 +75,12 @@ class Vector:
     def __eq__ (self, other):
         return self.dx == other.dx and self.dy == other.dy
 
+    def __add__ (self, other):
+        return Vector (self.dx + other.dx, self.dy + other.dy)
+
+    def __sub__ (self, other):
+        return Vector (self.dx - other.dx, self.dy - other.dy)
+
     def __mul__ (self, other):
         if isinstance (other, Vector):
             return self.dx * other.dx + self.dy * other.dy
@@ -118,7 +124,7 @@ class Arc:
         angle0 = (self.p0 - center).angle ()
         angle1 = (self.p1 - center).angle ()
         negative = self.d < 0
-        return (center.x,center.y),radius,angle0,angle1,negative
+        return (center.x,center.y),radius,angle0,angle1,negative,self
 
     def radius(self):
         return abs((self.p1-self.p0).len() / (2. * sin2atan (self.d)))
@@ -128,17 +134,30 @@ class Arc:
                (self.p1-self.p0).perpendicular()/(2. * tan2atan(self.d))
 
     def tangents(self):
-        dp = (p1 - p0) * .5
-        pp = -tan2atan (d) * dp.perpendicular ()
+        dp = (self.p1 - self.p0) * .5
+        pp = dp.perpendicular () * -tan2atan (self.d)
         return dp + pp, dp - pp
 
     def wedge_contains_point(self,p):
         # TODO this doesn't handle fabs(d) > 1.
         t0,t1 = self.tangents ()
-        return (p - p0) * t0  >= 0 and (p - p1) * t1 <= 0
+        return (p - self.p0) * t0  >= 0 and (p - self.p1) * t1 <= 0
 
     def __repr__ (self):
         return "Arc(%s,%s,%g)" % (self.p0, self.p1, self.d)
+
+    def distance_to_point (self, p):
+        if self.wedge_contains_point (p):
+            if abs (self.d) < 1e-5:
+                # Return distance to line
+                pp = (self.p1 - self.p0).perpendicular ().normalized ()
+                return abs ((p - self.p) * pp)
+            else:
+                c = self.center ()
+                r = self.radius ()
+                return abs ((p - c).len () - r)
+
+        return min ((p - self.p0).len (), (p - self.p1).len ())
 
     @staticmethod
     def from_three_points (p0, p1, pm, complement) :
