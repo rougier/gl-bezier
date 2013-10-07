@@ -151,7 +151,7 @@ class Arc:
             if abs (self.d) < 1e-5:
                 # Return distance to line
                 pp = (self.p1 - self.p0).perpendicular ().normalized ()
-                return abs ((p - self.p) * pp)
+                return abs ((p - self.p0) * pp)
             else:
                 c = self.center ()
                 r = self.radius ()
@@ -288,15 +288,18 @@ class ArcBezierErrorApproximatorBehdad:
         v0 = v0.rebase (b)
         v1 = v1.rebase (b)
 
+        # TODO if either v0 or v1 says we extend beyond the arc
+        # boundaries, well, handle that!
+
         v = Vector (self.MaxDeviationApproximator (v0.dx, v1.dx),
-                self.MaxDeviationApproximator (v0.dy, v1.dy))
+                    self.MaxDeviationApproximator (v0.dy, v1.dy))
 
         # Edge cases: If d*d is too close to being 1 default to a weak bound.
-        if abs (a.d * a.d - 1) < 1e-4:
+        if a.d * a.d > 1. - 1e-4:
             return ea + v.len ()
 
-        # We made sure that abs (a.d) != 1
-        tan_half_alpha = 2 * abs (a.d) / (1 - a.d*a.d)
+        # We made sure that a.d < 1
+        tan_half_alpha = abs (tan2atan (a.d))
 
         # If v.dy == 0, perturb just a bit.
         if abs (v.dy) < 1e-6:
@@ -305,15 +308,16 @@ class ArcBezierErrorApproximatorBehdad:
 
         tan_v = v.dx / v.dy
 
-        # TODO Double check and simplify these checks
-        if abs (a.d) < 1e-6 or tan_half_alpha < 0 or \
-           (-tan_half_alpha <= tan_v and tan_v <= tan_half_alpha):
+        # TODO Double check these
+        if abs (a.d) < 1e-6 or abs (tan_v) <= tan_half_alpha:
+            # TODO May be able to return ea if a.d is about zero?
             return ea + v.len ()
 
-        c2 = (b1.p3 - b1.p0).len () / 2
-        r = c2 * (a.d * a.d + 1) / (2 * abs (a.d))
+        c2 = (a.p1 - a.p0).len () / 2
+        r = a.radius ()
 
-        eb = Vector (c2 / tan_half_alpha + v.dy, c2 + v.dx).len () - r
+        eb = Vector (c2 + v.dx, c2 / tan_half_alpha + v.dy).len () - r
+        eb = eb / 2. # XXX Why is this needed?!
         assert eb >= 0
 
         return ea + eb
