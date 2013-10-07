@@ -50,11 +50,23 @@ class CubicBezier(object):
         self.y2 = float(y2)
         self.x3 = float(x3)
         self.y3 = float(y3)
-        
-        self.p0 = np.array([x0,y0])
-        self.p1 = np.array([x1,y1])
-        self.p2 = np.array([x2,y2])
-        self.p3 = np.array([x3,y3])
+ 
+    @property
+    def p0(self):
+        return np.array([self.x0,self.y0])
+
+    @property
+    def p1(self):
+        return np.array([self.x1,self.y1])
+
+    @property
+    def p2(self):
+        return np.array([self.x2,self.y2])
+
+    @property
+    def p3(self):
+        return np.array([self.x3,self.y3])
+
 
     def __call__(self, t):
         """
@@ -142,6 +154,23 @@ class CubicBezier(object):
         tf = math.pow(9. * flatness / s4, 1./3.)
         return t-tf*(1-t), t+tf*(1-t)
 
+    def diamond_angle(self,y,x):
+        """ See http://jsperf.com/diamond-angle-vs-atan2/2 """
+        if y >= 0:
+            if x >=0:
+                return y/(x+y)
+            else:
+                return 1-x/(-x+y)
+        else:
+            if x < 0:
+                return 2-y/(-x-y)
+            else:
+                return 3+x/(x-y)
+
+    def radian_to_diamond_angle(self,rad):
+        return self.diamond_angle(math.cos(rad), math.sin(rad))
+
+
     def angle(self):
         a23 = math.atan2(self.y2 - self.y1, self.x2 - self.x1)
         da1 = abs(a23 - math.atan2(self.y1 - self.y0, self.x1 - self.x0))
@@ -165,7 +194,6 @@ class CubicBezier(object):
             s3 = (self.x2-self.x0)*(self.y1-self.y0)-(self.y2-self.y0)*(self.x1-self.x0)
             s3 = abs(s3)/norm
             t = 2*math.sqrt(flatness /(3*s3))
-
             if t > 1:
                 break
 
@@ -173,7 +201,7 @@ class CubicBezier(object):
             for i in range(10):
                 left, right = self.split(t)
                 if left.angle() > angle:
-                    t /= 2.
+                   t /= 2.0
                 else:
                     break
 
@@ -385,7 +413,7 @@ class CubicBezier(object):
 	apprfunc = behdad.ArcBezierApproximatorMidpointTwoPart (errfunc)
 	splinefunc = behdad.ArcsBezierApproximatorSpringSystem (apprfunc)
 
-	arcs, error = splinefunc (b, flatness)
+        arcs, error = splinefunc (b, flatness)
 	for arc in arcs:
             P.append((arc.p1.x,arc.p1.y))
         return P
