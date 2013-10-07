@@ -220,7 +220,7 @@ def histogram_error(E, title):
 
     plt.text(0.16,NTESTS * .2520, title,
              va='bottom',ha='right', color='0.0', fontsize=16)
-    plt.text(0.16,NTESTS * .2475, 'Mean error over 10,000 curves',
+    plt.text(0.16,NTESTS * .2475, 'Mean error over %d curves' % NTESTS,
              va='top',ha='right', color='.5', fontsize=12)
 
     M = E[:,0].mean()
@@ -270,7 +270,7 @@ def histogram_length(E, title):
 
     plt.text(60,NTESTS * .2420, title,
              va='bottom',ha='right', color='0.0', fontsize=16)
-    plt.text(60,NTESTS * .2390, 'Mean size over 10,000 curves',
+    plt.text(60,NTESTS * .2390, 'Mean size over %d curves' % NTESTS,
              va='top',ha='right', color='.5', fontsize=12)
     M = E[:,2].mean()
     plt.axvline(x=M,ymin=0,ymax=NTESTS / 4, color='0.5',lw=.75,zorder=-1,ls='--')
@@ -278,33 +278,33 @@ def histogram_length(E, title):
     return fig
 
 
-# fig = histogram_length(E3, "Smart iterative")
-# fig.savefig("smart-iterative-size.pdf", dpi=72)
-# plt.show()
+fig = histogram_length(E3, "Smart iterative")
+fig.savefig("smart-iterative-size.pdf", dpi=72)
+plt.show()
 
-# fig = histogram_length(E4, "Recursive (agg)")
-# fig.savefig("recursive-size.pdf", dpi=72)
-# plt.show()
+fig = histogram_length(E4, "Recursive (agg)")
+fig.savefig("recursive-size.pdf", dpi=72)
+plt.show()
 
-# fig = histogram_length(E5, "Arc iterative (glyphy)")
-# fig.savefig("arc-iterative-size.pdf", dpi=72)
-# plt.show()
+fig = histogram_length(E5, "Arc iterative (glyphy)")
+fig.savefig("arc-iterative-size.pdf", dpi=72)
+plt.show()
 
-# fig = histogram_error(E1, "Forward iterative (n=25)")
-# fig.savefig("forwar-iterative-25-error.pdf", dpi=72)
-# plt.show()
+fig = histogram_error(E1, "Forward iterative (n=25)")
+fig.savefig("forwar-iterative-25-error.pdf", dpi=72)
+plt.show()
 
-# fig = histogram_error(E2, "Forward iterative (n=50)")
-# fig.savefig("forwar-iterative-50-error.pdf", dpi=72)
-# plt.show()
+fig = histogram_error(E2, "Forward iterative (n=50)")
+fig.savefig("forwar-iterative-50-error.pdf", dpi=72)
+plt.show()
 
-# fig = histogram_error(E3, "Smart iterative")
-# fig.savefig("smart-iterative-error.pdf", dpi=72)
-# plt.show()
+fig = histogram_error(E3, "Smart iterative")
+fig.savefig("smart-iterative-error.pdf", dpi=72)
+plt.show()
 
-# fig = histogram_error(E4, "Recursive (agg)")
-# fig.savefig("recursive-error.pdf", dpi=72)
-# plt.show()
+fig = histogram_error(E4, "Recursive (agg)")
+fig.savefig("recursive-error.pdf", dpi=72)
+plt.show()
 
 fig = histogram_error(E5, "Arc iterative (glyphy)")
 fig.savefig("arc-iterative-error.pdf", dpi=72)
