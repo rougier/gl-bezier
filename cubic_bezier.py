@@ -154,22 +154,6 @@ class CubicBezier(object):
         tf = math.pow(9. * flatness / s4, 1./3.)
         return t-tf*(1-t), t+tf*(1-t)
 
-    def diamond_angle(self,y,x):
-        """ See http://jsperf.com/diamond-angle-vs-atan2/2 """
-        if y >= 0:
-            if x >=0:
-                return y/(x+y)
-            else:
-                return 1-x/(-x+y)
-        else:
-            if x < 0:
-                return 2-y/(-x-y)
-            else:
-                return 3+x/(x-y)
-
-    def radian_to_diamond_angle(self,rad):
-        return self.diamond_angle(math.cos(rad), math.sin(rad))
-
 
     def angle(self):
         a23 = math.atan2(self.y2 - self.y1, self.x2 - self.x1)
