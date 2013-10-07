@@ -91,6 +91,7 @@ if not os.path.exists(filename):
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
         E1.append(d)
     update_progress(1)
+    E1 = np.array(E1)
     np.save(filename, E1)
 else:
     print "Loading", filename
@@ -111,6 +112,7 @@ if not os.path.exists(filename):
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
         E2.append(d)
     update_progress(1)
+    E2 = np.array(E2)
     np.save(filename, E2)
 else:
     print "Loading", filename
@@ -130,6 +132,7 @@ if not os.path.exists(filename):
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
         E3.append(d)
     update_progress(1)
+    E3 = np.array(E3)
     np.save(filename, E3)
 else:
     print "Loading", filename
@@ -149,6 +152,7 @@ if not os.path.exists(filename):
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
         E4.append(d)
     update_progress(1)
+    E4 = np.array(E4)
     np.save(filename, E4)
 else:
     print "Loading", filename
@@ -169,6 +173,7 @@ if not os.path.exists(filename):
         d = distance.polyarc_to_cubic(P, p0, p1, p2, p3, n=100)
         E5.append(d)
     update_progress(1)
+    E5 = np.array(E5)
     np.save(filename, E5)
 else:
     print "Loading", filename
