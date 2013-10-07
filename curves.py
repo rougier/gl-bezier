@@ -322,8 +322,8 @@ def curve4_bezier( p1, p2, p3, p4, flatness=0.125, angle=15 ):
     global m_distance_tolerance_square
 
     m_angle_tolerance = angle*math.pi/180.0
-    #m_approximation_scale = 0.125
-    m_approximation_scale = 1.0
+    m_approximation_scale = 0.125
+    # m_approximation_scale = 1.0
     m_distance_tolerance_square = (flatness / m_approximation_scale)**2
 
     x1,y1 = p1
