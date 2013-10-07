@@ -38,10 +38,11 @@ from matplotlib.ticker import MultipleLocator
 import distance
 from cubic_bezier import CubicBezier
 
+NTESTS = 10000
 
 # Measure errors on 10,000 curves
 np.random.seed(1)
-curves = np.random.randint(100,700,(10000,4,2))
+curves = np.random.randint(100,700,(NTESTS,4,2))
 flatness = 0.125
 angle = 15
 n1, n2 = 25, 50
@@ -82,8 +83,8 @@ filename = 'forward-iterative-25.npy'
 if not os.path.exists(filename):
     print "Computing", filename
     E1 = []
-    for i in range(10000):
-        update_progress(i/10000.)
+    for i in range(NTESTS):
+        update_progress(i/float(NTESTS))
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_forward_iterative(n=n1)
@@ -102,8 +103,8 @@ filename = 'forward-iterative-50.npy'
 if not os.path.exists(filename):
     print "Computing", filename
     E2 = []
-    for i in range(10000):
-        update_progress(i/10000.)
+    for i in range(NTESTS):
+        update_progress(i/float(NTESTS))
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_forward_iterative(n=n2)
@@ -121,8 +122,8 @@ filename = 'smart-iterative.npy'
 if not os.path.exists(filename):
     print "Computing", filename
     E3 = []
-    for i in range(10000):
-        update_progress(i/10000.)
+    for i in range(NTESTS):
+        update_progress(i/float(NTESTS))
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_iterative(flatness=flatness, angle=angle)
@@ -140,8 +141,8 @@ filename = 'recursive.npy'
 if not os.path.exists(filename):
     print "Computing", filename
     E4 = []
-    for i in range(10000):
-        update_progress(i/10000.)
+    for i in range(NTESTS):
+        update_progress(i/float(NTESTS))
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_recursive(flatness=flatness, angle=angle)
@@ -160,8 +161,8 @@ filename = 'arc-iterative.npy'
 if not os.path.exists(filename):
     print "Computing", filename
     E5 = []
-    for i in range(10000):
-        update_progress(i/10000.)
+    for i in range(NTESTS):
+        update_progress(i/float(NTESTS))
         p0,p1,p2,p3 = curves[i]
         C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
         P = C.flatten_behdad_arc(flatness=flatness)
@@ -192,7 +193,7 @@ def histogram_error(E, title):
 
     fig = plt.figure(figsize=(12,6), dpi=72)
     ax = plt.subplot(111, axisbelow=True)
-    ax.spines['bottom'].set_position(('data',-5))
+    ax.spines['bottom'].set_position(('data',-NTESTS / 2000.))
 
     plt.hist(E[:,0],range=(0.0,0.16), bins=50, edgecolor='w', facecolor='.5')
 
@@ -204,23 +205,23 @@ def histogram_error(E, title):
     ax.set_yticks([])
 
     plt.xlim(0.0, 0.16)
-    plt.ylim(0, 2600)
+    plt.ylim(0, NTESTS / 4)
 
-    ax.yaxis.set_major_locator(MultipleLocator(500))
+    ax.yaxis.set_major_locator(MultipleLocator(NTESTS / 20))
     ax.grid(which='major', axis='y', linewidth=0.75, linestyle='-', color='0.75')
     [t.set_color('0.5') for t in ax.xaxis.get_ticklabels()]
     [t.set_color('0.5') for t in ax.yaxis.get_ticklabels()]
     [t.set_alpha(0.0) for t in ax.yaxis.get_ticklines()]
 
-    plt.text(0.16,2520, title,
+    plt.text(0.16,NTESTS * .2520, title,
              va='bottom',ha='right', color='0.0', fontsize=16)
-    plt.text(0.16,2475, 'Mean error over 10,000 curves',
+    plt.text(0.16,NTESTS * .2475, 'Mean error over 10,000 curves',
              va='top',ha='right', color='.5', fontsize=12)
 
     M = E[:,0].mean()
 
-    plt.axvline(x=M,ymin=0,ymax=2600, color='0.5',lw=.75,zorder=-1,ls='--')
-    plt.text(0.0,2510, '# Curves', va='bottom',ha='left', color='.5', fontsize=12)
+    plt.axvline(x=M,ymin=0,ymax=NTESTS / 4, color='0.5',lw=.75,zorder=-1,ls='--')
+    plt.text(0.0,NTESTS * .2510, '# Curves', va='bottom',ha='left', color='.5', fontsize=12)
     return fig
 
 
@@ -242,7 +243,7 @@ def histogram_length(E, title):
 
     fig = plt.figure(figsize=(12,6), dpi=72)
     ax = plt.subplot(111, axisbelow=True)
-    ax.spines['bottom'].set_position(('data',-5))
+    ax.spines['bottom'].set_position(('data',-NTESTS / 2000.))
 
     plt.hist(E[:,2], bins=15, edgecolor='w', facecolor='.5')
 
@@ -254,21 +255,21 @@ def histogram_length(E, title):
     ax.set_yticks([])
 
     plt.xlim(0, 60)
-    plt.ylim(0, 2450)
+    plt.ylim(0, NTESTS / 4)
 
-    ax.yaxis.set_major_locator(MultipleLocator(200))
+    ax.yaxis.set_major_locator(MultipleLocator(NTESTS / 50))
     ax.grid(which='major', axis='y', linewidth=0.75, linestyle='-', color='0.75')
     [t.set_color('0.5') for t in ax.xaxis.get_ticklabels()]
     [t.set_color('0.5') for t in ax.yaxis.get_ticklabels()]
     [t.set_alpha(0.0) for t in ax.yaxis.get_ticklines()]
 
-    plt.text(60,2420, title,
+    plt.text(60,NTESTS * .2420, title,
              va='bottom',ha='right', color='0.0', fontsize=16)
-    plt.text(60,2390, 'Mean size over 10,000 curves',
+    plt.text(60,NTESTS * .2390, 'Mean size over 10,000 curves',
              va='top',ha='right', color='.5', fontsize=12)
     M = E[:,2].mean()
-    plt.axvline(x=M,ymin=0,ymax=2600, color='0.5',lw=.75,zorder=-1,ls='--')
-    plt.text(0.0,2390, '# Curves', va='top',ha='left', color='.5', fontsize=12)
+    plt.axvline(x=M,ymin=0,ymax=NTESTS / 4, color='0.5',lw=.75,zorder=-1,ls='--')
+    plt.text(0.0,NTESTS * .2390, '# Curves', va='top',ha='left', color='.5', fontsize=12)
     return fig
 
 
@@ -300,6 +301,6 @@ def histogram_length(E, title):
 # fig.savefig("recursive-error.pdf", dpi=72)
 # plt.show()
 
-# fig = histogram_error(E5, "Arc iterative (glyphy)")
-# fig.savefig("arc-iterative-error.pdf", dpi=72)
-# plt.show()
+fig = histogram_error(E5, "Arc iterative (glyphy)")
+fig.savefig("arc-iterative-error.pdf", dpi=72)
+plt.show()
