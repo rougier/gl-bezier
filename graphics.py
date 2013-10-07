@@ -65,7 +65,7 @@ def cubic_bezier(p0, p1, p2, p3, color = 'k', linewidth=1, alpha=1,
 
 
 # -----------------------------------------------------------------------------
-def polyline(verts, color = 'k', linewidth=1, alpha=1,
+def polyline(verts, color = 'b', linewidth=1, alpha=1,
              capstyle='butt', joinstyle='miter'):
     """ """
 
@@ -84,7 +84,7 @@ def polyline(verts, color = 'k', linewidth=1, alpha=1,
 
 
 # -----------------------------------------------------------------------------
-def polyarc(arcs, color = 'k', linewidth=1, alpha=1):
+def polyarc(arcs, color = 'b', linewidth=1, alpha=1):
     """ """
 
     for arc in arcs:
@@ -140,21 +140,20 @@ if __name__ == '__main__':
         # plt.scatter(P[:,0], P[:,1], s=25,
         #             edgecolor='k', facecolor='w', zorder=10, lw=.5)
 
-        # P = C.flatten_iterative(flatness=.125/2, angle=10)
-        # P = np.array(P)
-        # polyline(P, linewidth=100, alpha=.25)
-        # plt.scatter(P[:,0], P[:,1], s=25,
-        #              edgecolor='k', facecolor='w', zorder=10, lw=.5)
-
-        P = C.flatten_recursive(flatness=.25, angle=10)
+        P = C.flatten_iterative(flatness=.125, angle=10)
         P = np.array(P)
         print len(P)
-        polyline(P, linewidth=100, alpha=.25)
-        plt.scatter(P[:,0], P[:,1], s=25,
-                     edgecolor='k', facecolor='w', zorder=10, lw=.5)
+        polyline(P, linewidth=100, alpha=.1)
+        plt.scatter(P[:,0], P[:,1], s=25, edgecolor='k', facecolor='w', zorder=10, lw=.5)
 
-        #A = C.flatten_behdad_arc(0.125)
-        #polyarc(A, linewidth=50, alpha=.25)
+        # P = C.flatten_recursive(flatness=.5, angle=10) 
+        # P = np.array(P)
+        # print len(P)
+        # polyline(P, linewidth=100, alpha=.1)
+        # plt.scatter(P[:,0], P[:,1], s=25, edgecolor='k', facecolor='w', zorder=10, lw=.5)
+
+        # A = C.flatten_behdad_arc(0.125)
+        # polyarc(A, linewidth=100, alpha=.1)
 
         
 
