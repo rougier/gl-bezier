@@ -155,7 +155,7 @@ class CubicBezier(object):
         return t-tf*(1-t), t+tf*(1-t)
 
 
-    def angle(self):
+    def agg_angle(self):
         a23 = math.atan2(self.y2 - self.y1, self.x2 - self.x1)
         da1 = abs(a23 - math.atan2(self.y1 - self.y0, self.x1 - self.x0))
         da2 = abs(math.atan2(self.y3 - self.y2, self.x3 - self.x2) - a23)
@@ -165,6 +165,34 @@ class CubicBezier(object):
             da2 = 2*math.pi - da2
         return da1 + da2
 
+
+    def angle(self):
+        dx0 = self.x1-self.x0
+        dy0 = self.y1-self.y0
+        dx1 = self.x3-self.x2
+        dy1 = self.y3-self.y2
+        angle = math.atan2(abs(dx0*dy1-dy0*dx1), dx0*dx1+dy0*dy1)
+        return angle
+
+    def diamond_angle(self):
+        dx0 = self.x1-self.x0
+        dy0 = self.y1-self.y0
+        dx1 = self.x3-self.x2
+        dy1 = self.y3-self.y2
+        y = abs(dx0*dy1-dy0*dx1)
+        x = dx0*dx1+dy0*dy1
+        if y >= 0:
+            if x >= 0:
+                return  y/(x+y)
+            else:
+                return 1-x/(-x+y)
+        else:
+            if x < 0:
+                return 2-y/(-x-y)
+            else:
+                return 3+x/(x-y)
+
+
     def flatten(self, flatness=0.25, angle=15):
         angle *= math.pi/180.0
 
@@ -172,17 +200,16 @@ class CubicBezier(object):
         while 1:
             dx = self.x1 - self.x0
             dy = self.y1 - self.y0
-            norm = math.sqrt(dx * dx + dy * dy)
+            norm = math.hypot(dx,dy)
             if not norm:
                 break
-            s3 = (self.x2-self.x0)*(self.y1-self.y0)-(self.y2-self.y0)*(self.x1-self.x0)
-            s3 = abs(s3)/norm
+            s3 = abs((self.x2-self.x0)*dy-(self.y2-self.y0)*dx)/norm
             t = 2*math.sqrt(flatness /(3*s3))
             if t > 1:
                 break
 
             # Check angle is below tolerance
-            for i in range(10):
+            for i in xrange(10):
                 left, right = self.split(t)
                 if left.angle() > angle:
                    t /= 2.0
