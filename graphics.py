@@ -84,7 +84,8 @@ def polyline(verts, color = 'b', linewidth=1, alpha=1,
 
 
 # -----------------------------------------------------------------------------
-def polyarc(arcs, color = 'b', linewidth=1, alpha=1):
+def polyarc(arcs, color = 'b', linewidth=1, alpha=1,
+            capstyle='butt', joinstyle='miter'):
     """ """
 
     for arc in arcs:
@@ -95,6 +96,8 @@ def polyarc(arcs, color = 'b', linewidth=1, alpha=1):
             angle0, angle1 = angle1, angle0
         arc = Arc(center, 2*radius, 2*radius, 0, angle0, angle1,
                   color=color, linewidth = linewidth, alpha=alpha)
+        arc.set_path_effects([PathEffects.Stroke(capstyle=capstyle,
+                                               joinstyle=joinstyle )])
         plt.gca().add_artist(arc)
     plt.xticks([])
     plt.yticks([])
