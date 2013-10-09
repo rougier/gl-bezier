@@ -106,9 +106,7 @@ class CubicBezier(object):
 
 
     def inflection_points(self):
-        """
-        Find inflection points
-        """
+        """ Find inflection points """
 
         A = -  self.p0 + 3*self.p1 - 3*self.p2 + self.p3
         B =  3*self.p0 - 6*self.p1 + 3*self.p2
@@ -126,9 +124,8 @@ class CubicBezier(object):
 
 
     def inflection_domain(self, t, flatness=0.25):
-        """
-        Determine the domain around an inflection point where the curve is flat.
-        """
+        """ Determine the domain around an inflection point
+            where the curve is flat. """
 
         _, right = self.split(t)
         ax = -right.x0 + 3*right.x1 - 3*right.x2 + right.x3
@@ -144,18 +141,9 @@ class CubicBezier(object):
         return t-tf*(1-t), t+tf*(1-t)
 
 
-    def agg_angle(self):
-        a23 = math.atan2(self.y2 - self.y1, self.x2 - self.x1)
-        da1 = abs(a23 - math.atan2(self.y1 - self.y0, self.x1 - self.x0))
-        da2 = abs(math.atan2(self.y3 - self.y2, self.x3 - self.x2) - a23)
-        if da1 >= math.pi:
-            da1 = 2*math.pi - da1
-        if da2 >= math.pi:
-            da2 = 2*math.pi - da2
-        return da1 + da2
-
-
     def angle(self):
+        """ Compute angle betwenn (p0,p1) and (p2,p3) """
+
         dx0 = self.x1-self.x0
         dy0 = self.y1-self.y0
         dx1 = self.x3-self.x2
@@ -163,28 +151,9 @@ class CubicBezier(object):
         angle = math.atan2(abs(dx0*dy1-dy0*dx1), dx0*dx1+dy0*dy1)
         return angle
 
-    def diamond_angle(self):
-        dx0 = self.x1-self.x0
-        dy0 = self.y1-self.y0
-        dx1 = self.x3-self.x2
-        dy1 = self.y3-self.y2
-        y = abs(dx0*dy1-dy0*dx1)
-        x = dx0*dx1+dy0*dy1
-        if y >= 0:
-            if x >= 0:
-                return  y/(x+y)
-            else:
-                return 1-x/(-x+y)
-        else:
-            if x < 0:
-                return 2-y/(-x-y)
-            else:
-                return 3+x/(x-y)
-
 
     def flatten(self, flatness=0.25, angle=15):
         angle *= math.pi/180.0
-
         P = []
         while 1:
             dx = self.x1 - self.x0
@@ -201,7 +170,7 @@ class CubicBezier(object):
             for i in xrange(20):
                 left, right = self.split(t)
                 if left.angle() > angle:
-                   t /= 2.0
+                   t /= 1.5
                 else:
                     break
 
@@ -209,14 +178,12 @@ class CubicBezier(object):
             self.x1, self.y1 = right.x1, right.y1
             self.x2, self.y2 = right.x2, right.y2
             self.x3, self.y3 = right.x3, right.y3
-
             P.append((self.x0, self.y0))
         return P
 
 
     def flatten_brute_iterative(self, n=50):
-        """
-        """
+        """ Brute force segmentation """
         P = [(self.x0,self.y0)]
         for i in xrange(1,n-1):
             t = i / float(n)
@@ -225,8 +192,8 @@ class CubicBezier(object):
         return P
 
     def flatten_forward_iterative(self, n=50):
-        """
-        """
+        """ Dumb segmentation """
+
         h = 1.0 / n;
         fph = 3 * (self.p1 - self.p0) * h
         fpphh = (6 * self.p0 - 12 * self.p1 + 6 * self.p2) * h * h
@@ -242,8 +209,7 @@ class CubicBezier(object):
         return P
 
     def flatten_forward_iterative_variable(self):
-        """
-        """
+        """  """
 
         d1 = np.sqrt(((self.p1-self.p0)**2).sum())
         d2 = np.sqrt(((self.p2-self.p1)**2).sum())
@@ -370,8 +336,7 @@ class CubicBezier(object):
         return points
 
     def flatten_behdad_segment(self, flatness=0.125):
-        """
-        """
+        """ """
         P = [(self.x0,self.y0)]
         import behdad
 
@@ -411,19 +376,19 @@ class CubicBezier(object):
         return A
 
 
-        # I = self.inflection_points()
-        # for t in self.inflection_points():
-        #     if t:
-        #         t_neg,t_pos = self.inflection_domain(t)
-        #         if 0 <= t <= 1:
-        #             P = self(t)
-        #             plt.scatter([P[0],], [P[1],], s=50,
-        #                         edgecolor='r', facecolor='None')
-        #             plt.scatter([P[0],], [P[1],], s=50, zorder=10,
-        #                         edgecolor='None', facecolor='white',alpha=.5)
-        #         if 0 <= t_neg <= 1:
-        #             P = self(t_neg)
-        #             plt.scatter([P[0],], [P[1],], s=10, color='k')
-        #         if 0 <= t_pos <= 1:
-        #             P = self(t_pos)
-        #             plt.scatter([P[0],], [P[1],], s=10, color='k')
+# I = self.inflection_points()
+# for t in self.inflection_points():
+#     if t:
+#         t_neg,t_pos = self.inflection_domain(t)
+#         if 0 <= t <= 1:
+#             P = self(t)
+#             plt.scatter([P[0],], [P[1],], s=50,
+#                         edgecolor='r', facecolor='None')
+#             plt.scatter([P[0],], [P[1],], s=50, zorder=10,
+#                         edgecolor='None', facecolor='white',alpha=.5)
+#         if 0 <= t_neg <= 1:
+#             P = self(t_neg)
+#             plt.scatter([P[0],], [P[1],], s=10, color='k')
+#         if 0 <= t_pos <= 1:
+#             P = self(t_pos)
+#             plt.scatter([P[0],], [P[1],], s=10, color='k')
