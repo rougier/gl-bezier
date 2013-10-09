@@ -425,7 +425,8 @@ if __name__ == "__main__":
     #b = Bezier (Point(33, 8), Point(41, 30), Point(38, 0), Point(32, 32))
     #b = Bezier (Point(42, 23), Point(36, 24), Point(19, 46), Point(44, 36))
     #b = Bezier (Point(4, 43), Point(4, 18), Point(4, 31), Point(4, 36))
-    b = Bezier (Point(39, 24), Point(21, 24), Point(23, 24), Point(3, 24))
+    #b = Bezier (Point(39, 24), Point(21, 24), Point(23, 24), Point(3, 24))
+    b = Bezier (Point(41, 28), Point(2, 11), Point(25, 11), Point(18, 15))
 
     errfunc = ArcBezierErrorApproximatorBehdad (MaxDeviationApproximatorExact ())
     apprfunc = ArcBezierApproximatorMidpointTwoPart (errfunc)
