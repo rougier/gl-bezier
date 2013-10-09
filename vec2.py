@@ -31,7 +31,7 @@ class vec2(list):
     def __setitem__ (self, index, value):
         if   index == 0: self.x = value
         elif index == 1: self.y = value
-        raise IndexError
+        else: raise IndexError
 
     def __len__ (self):
         return 2
