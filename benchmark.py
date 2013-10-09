@@ -41,8 +41,9 @@ from cubic_bezier import CubicBezier
 NTESTS = 10000
 
 # Measure errors on 10,000 curves
-np.random.seed(1)
-curves = np.random.randint(100,700,(NTESTS,4,2))
+np.random.seed(123)
+#np.random.seed(1)
+curves = np.random.randint(0,50,(NTESTS,4,2))
 flatness = 0.125
 angle = 15
 n1, n2 = 25, 50
@@ -87,7 +88,7 @@ if not os.path.exists(filename):
         update_progress(i/float(NTESTS))
         C = CubicBezier(*curves[i])
         P = C.flatten_forward_iterative(n=n1)
-        d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
+        d = distance.polyline_to_cubic(P, *curves[i], n=100)
         E1.append(d)
     update_progress(1)
     E1 = np.array(E1)
@@ -107,7 +108,7 @@ if not os.path.exists(filename):
         update_progress(i/float(NTESTS))
         C = CubicBezier(*curves[i])
         P = C.flatten_forward_iterative(n=n2)
-        d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
+        d = distance.polyline_to_cubic(P, *curves[i], n=100)
         E2.append(d)
     update_progress(1)
     E2 = np.array(E2)
@@ -126,7 +127,7 @@ if not os.path.exists(filename):
         update_progress(i/float(NTESTS))
         C = CubicBezier(*curves[i])
         P = C.flatten_iterative(flatness=flatness, angle=angle)
-        d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
+        d = distance.polyline_to_cubic(P, *curves[i], n=100)
         E3.append(d)
     update_progress(1)
     E3 = np.array(E3)
@@ -145,7 +146,7 @@ if not os.path.exists(filename):
         update_progress(i/float(NTESTS))
         C = CubicBezier(*curves[i])
         P = C.flatten_recursive(flatness=flatness, angle=angle)
-        d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
+        d = distance.polyline_to_cubic(P, *curves[i], n=100)
         E4.append(d)
     update_progress(1)
     E4 = np.array(E4)
@@ -161,11 +162,12 @@ filename = 'arc-iterative.npy'
 if not os.path.exists(filename):
     print "Computing", filename
     E5 = []
+    dmax = 0
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
         C = CubicBezier(*curves[i])
         P = C.flatten_behdad_arc(flatness=flatness)
-        d = distance.polyarc_to_cubic(P, p0, p1, p2, p3, n=100)
+        d = distance.polyarc_to_cubic(P, *curves[i], n=100)
         E5.append(d)
     update_progress(1)
     E5 = np.array(E5)
