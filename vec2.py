@@ -91,16 +91,16 @@ def length(v):
     return v.length()
 
 def dot(v0, v1):
-    return v0.x*v1.x + v0.y*v1.y
+    return v0[0]*v1[0] + v0[1]*v1[1]
 
 def cross(v0, v1):
-    return v0.x*v1.y - v0.y*v1.x 
+    return v0[0]*v1[1] - v0[1]*v1[0] 
 
 def mix(v0, v1, a):
-    if a == 0.0: return vec2(v0.x, v0.y)
-    if a == 1.0: return vec2(v1.x, v1.y)
-    return vec2 ((1-a)*v0.x + a*v1.x,
-                 (1-a)*v0.y + a*v1.y)
+    if a == 0.0: return vec2(v0[0], v0[1])
+    if a == 1.0: return vec2(v1[0], v1[1])
+    return vec2 ((1-a)*v0[0] + a*v1[0],
+                 (1-a)*v0[1] + a*v1[1])
 
 def middle(v0, v1):
     return mix(v0,v1,0.5)
@@ -109,4 +109,4 @@ def angle(v0,v1):
     return math.atan2(abs(cross(v0,v1)),dot(v0,v1))
 
 def det(p0, p1, p2):
-    return (p1.x-p0.x)*(p2.y-p0.y) - (p1.y-p0.y)*(p2.x-p0.x)
+    return (p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0])
