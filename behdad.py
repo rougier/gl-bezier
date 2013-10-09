@@ -389,13 +389,14 @@ class ArcsBezierApproximatorSpringSystem:
 
             if 0.0 in errors:
                 bias = sum (errors) / len (errors)
+                if bias == 0.0:
+                    # All errors are zero!
+                    return ts, arcs, errors
                 errors = [e + bias for e in errors]
 
             total = 0.
             for i in range (n):
                 l = ts[i + 1] - ts[i]
-                # BUG for 39, 24, 21, 24, 23, 24, 3, 24                
-                # ZeroDivisionError: 0.0 cannot be raised to a negative power
                 k_inv = l * (errors[i] ** -.3)
                 total += k_inv
                 errors[i] = k_inv
@@ -423,7 +424,8 @@ if __name__ == "__main__":
     #b = Bezier (Point(38, 23), Point(44, 23), Point(13, 25), Point(10, 2))
     #b = Bezier (Point(33, 8), Point(41, 30), Point(38, 0), Point(32, 32))
     #b = Bezier (Point(42, 23), Point(36, 24), Point(19, 46), Point(44, 36))
-    b = Bezier (Point(4, 43), Point(4, 18), Point(4, 31), Point(4, 36))
+    #b = Bezier (Point(4, 43), Point(4, 18), Point(4, 31), Point(4, 36))
+    b = Bezier (Point(39, 24), Point(21, 24), Point(23, 24), Point(3, 24))
 
     errfunc = ArcBezierErrorApproximatorBehdad (MaxDeviationApproximatorExact ())
     apprfunc = ArcBezierApproximatorMidpointTwoPart (errfunc)
