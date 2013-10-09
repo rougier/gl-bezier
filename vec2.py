@@ -85,10 +85,10 @@ class vec2(list):
 
 
 def normalized(v):
-    return v.normalized()
+    return vec2(v[0],v[1]).normalized()
 
 def length(v):
-    return v.length()
+    return vec2(v[0],v[1]).length()
 
 def dot(v0, v1):
     return v0[0]*v1[0] + v0[1]*v1[1]
