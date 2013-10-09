@@ -30,6 +30,9 @@ def tan2atan(d): return 2 * d / (1. - d*d)
 # returns sin (2 * atan (d))
 def sin2atan(d): return 2 * d / (1. + d*d)
 
+# returns cos (2 * atan (d))
+def cos2atan(d): return (1. - d*d) / (1. + d*d)
+
 
 class Point:
 
@@ -135,13 +138,16 @@ class Arc:
 
     def tangents(self):
         dp = (self.p1 - self.p0) * .5
-        pp = dp.perpendicular () * -tan2atan (self.d)
+        pp = dp.perpendicular () * -sin2atan (self.d)
+        dp = dp * cos2atan (self.d)
         return dp + pp, dp - pp
 
     def wedge_contains_point(self,p):
-        # TODO this doesn't handle fabs(d) > 1.
         t0,t1 = self.tangents ()
-        return (p - self.p0) * t0  >= 0 and (p - self.p1) * t1 <= 0
+        if abs (self.d) <= 1.:
+            return (p - self.p0) * t0  >= 0 and (p - self.p1) * t1 <= 0
+        else:
+            return (p - self.p0) * t0  >= 0 or (p - self.p1) * t1 <= 0
 
     def __repr__ (self):
         return "Arc(%s,%s,%g)" % (self.p0, self.p1, self.d)
@@ -195,6 +201,18 @@ class Bezier:
     def __repr__ (self):
         return "Bezier(%s,%s,%s,%s)" % (self.p0, self.p1, self.p2, self.p3)
 
+    def __call__ (self, t):
+        p0, p1, p2, p3 = self.p0, self.p1, self.p2, self.p3
+
+        p01 = p0.lerp (t, p1)
+        p12 = p1.lerp (t, p2)
+        p23 = p2.lerp (t, p3)
+        p012 = p01.lerp (t, p12)
+        p123 = p12.lerp (t, p23)
+        p0123 = p012.lerp (t, p123)
+
+        return p0123
+
     def split (self, t):
         p0, p1, p2, p3 = self.p0, self.p1, self.p2, self.p3
 
@@ -204,6 +222,7 @@ class Bezier:
         p012 = p01.lerp (t, p12)
         p123 = p12.lerp (t, p23)
         p0123 = p012.lerp (t, p123)
+
         return Bezier (p0, p01, p012, p0123), Bezier (p0123, p123, p23, p3)
 
     def segment (self, t0, t1):
@@ -316,7 +335,6 @@ class ArcBezierErrorApproximatorBehdad:
         r = a.radius ()
 
         eb = Vector (c2 + v.dx, c2 / tan_half_alpha + v.dy).len () - r
-        eb = eb / 2. # XXX Why is this needed?!
         assert eb >= 0
 
         return ea + eb
@@ -365,7 +383,7 @@ class ArcsBezierApproximatorSpringSystem:
             if max (errors) <= tolerance:
                 break
 
-        return arcs, max (errors)
+        return arcs, max (errors), ts
 
 
     def __calc_arcs (self, b, ts):
@@ -389,13 +407,14 @@ class ArcsBezierApproximatorSpringSystem:
 
             if 0.0 in errors:
                 bias = sum (errors) / len (errors)
+                if bias == 0.0:
+                    # All errors are zero!
+                    return ts, arcs, errors
                 errors = [e + bias for e in errors]
 
             total = 0.
             for i in range (n):
                 l = ts[i + 1] - ts[i]
-                # BUG for 39, 24, 21, 24, 23, 24, 3, 24                
-                # ZeroDivisionError: 0.0 cannot be raised to a negative power
                 k_inv = l * (errors[i] ** -.3)
                 total += k_inv
                 errors[i] = k_inv
@@ -419,21 +438,40 @@ class ArcsBezierApproximatorSpringSystem:
 
 if __name__ == "__main__":
 
-    #b = Bezier (Point(8, 21), Point(5, 17), Point(13, 27), Point(33, 48))
-    #b = Bezier (Point(38, 23), Point(44, 23), Point(13, 25), Point(10, 2))
-    #b = Bezier (Point(33, 8), Point(41, 30), Point(38, 0), Point(32, 32))
-    #b = Bezier (Point(42, 23), Point(36, 24), Point(19, 46), Point(44, 36))
-    b = Bezier (Point(4, 43), Point(4, 18), Point(4, 31), Point(4, 36))
+    test_beziers = [
+        [[8, 21], [5, 17], [13, 27], [33, 48]],
+        [[38, 23], [44, 23], [13, 25], [10, 2]],
+        [[33, 8], [41, 30], [38, 0], [32, 32]],
+        [[42, 23], [36, 24], [19, 46], [44, 36]],
+        [[4, 43], [4, 18], [4, 31], [4, 36]],
+        [[39, 24], [21, 24], [23, 24], [3, 24]],
+        [[41, 28], [2, 11], [25, 11], [18, 15]],
+        [[48, 13], [2, 47], [37, 43], [23, 35]],
+        [[11, 17], [44, 49], [4, 30], [1, 44]],
+        [[18, 4], [38, 23], [30, 21], [38, 35]],
+        [[24, 46], [1, 40], [20, 20], [19, 4]],
+        [[11, 8], [18, 17], [15, 4], [10, 45]],
+        [[44, 6], [23, 6], [11, 33], [1, 48]],
+        [[13, 47], [27, 32], [27, 11], [44, 4]],
+        [[33, 14], [20, 20], [8, 32], [4, 27]],
+    ]
 
     errfunc = ArcBezierErrorApproximatorBehdad (MaxDeviationApproximatorExact ())
     apprfunc = ArcBezierApproximatorMidpointTwoPart (errfunc)
     splinefunc = ArcsBezierApproximatorSpringSystem (apprfunc)
 
-    #print apprfunc (b)
-
     tolerance = .125
-    arcs, error = splinefunc (b, tolerance)
-    print len (arcs), error
 
-    for arc in arcs:
-        print arc
+    for points in test_beziers:
+        b = Bezier (*(Point(x,y) for x,y in points))
+        arcs, error, ts = splinefunc (b, tolerance)
+        print len (arcs), error, ts
+        N = 1000
+        for i in range (N + 1):
+            t = float (i) / N
+            p = b(t)
+            d = min (arc.distance_to_point (p) for arc in arcs)
+            if d > tolerance:
+                print t, p, d
+                print arcs
+                assert 0
