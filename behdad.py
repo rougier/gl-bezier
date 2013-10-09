@@ -394,6 +394,8 @@ class ArcsBezierApproximatorSpringSystem:
             total = 0.
             for i in range (n):
                 l = ts[i + 1] - ts[i]
+                # BUG for 39, 24, 21, 24, 23, 24, 3, 24                
+                # ZeroDivisionError: 0.0 cannot be raised to a negative power
                 k_inv = l * (errors[i] ** -.3)
                 total += k_inv
                 errors[i] = k_inv
