@@ -350,7 +350,7 @@ class CubicBezier(object):
 	apprfunc = behdad.ArcBezierApproximatorMidpointTwoPart (errfunc)
 	splinefunc = behdad.ArcsBezierApproximatorSpringSystem (apprfunc)
 
-        arcs, error = splinefunc (b, flatness)
+        arcs, error, ts = splinefunc (b, flatness)
 	for arc in arcs:
             P.append((arc.p1.x,arc.p1.y))
         return P
@@ -370,7 +370,7 @@ class CubicBezier(object):
 	apprfunc = behdad.ArcBezierApproximatorMidpointTwoPart (errfunc)
 	splinefunc = behdad.ArcsBezierApproximatorSpringSystem (apprfunc)
 
-	arcs, error = splinefunc (b, flatness)
+	arcs, error, ts = splinefunc (b, flatness)
 	for arc in arcs:
             A.append(arc)
         return A
