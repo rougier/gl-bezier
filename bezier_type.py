@@ -25,17 +25,13 @@ epsilon = 1e-10
 
 
 def sign(a):
-    if a > epsilon:
-        return 1
-    elif a < -epsilon:
-        return -1
+    if a > epsilon:    return +1
+    elif a < -epsilon: return -1
     return 0
-
 
 def evaluate_point(t, p0, p1, p2, p3):
     # Evaluates the point on a cubic Bezier whose control points are in the
     # array cpt at parameter value t and returns the resuls in pt
-
     return p0 * (1 - t)**3     + \
            p1 * 3*t * (1-t)**2 + \
            p2 * 3*t**2 *(1-t)  + \
@@ -70,13 +66,13 @@ def point_relative_to_line(p0, p1, p2):
     If it lies before p0 return -1 , if it lies after p1 return 1 :
     otherwise return 0
     """
-    a = -(p1.x - p0.x) * (p2.x - p0.x)
-    b = (p1.y - p0.y) * (p2.y - p0.y)
+    a = -(p1[0] - p0[0]) * (p2[0] - p0[0])
+    b = (p1[1] - p0[1]) * (p2[1] - p0[1])
     if (a - b) >= 0:
         return -1
     else:
-        a = - ( p0.x - p1.x ) * ( p2.x - p1.x )
-        b = ( p0.y - p1.y ) * ( p2.y - p1.y )
+        a = - ( p0[0] - p1[0] ) * ( p2[0] - p1[0] )
+        b = ( p0[1] - p1[1] ) * ( p2[1] - p1[1] )
         if ( a - b ) >= 0.0:
             return 1 
         else:
@@ -102,7 +98,7 @@ def cubic_bezier_type(p0,p1,p2,p3):
     if sign_012 == 0 and sign_123 == 0:
         # Could test for a single point here if necessary
         if sign_013 == 0:
-            return CubicBezierType.straight_line
+            return CubicBezierType.line
         # Points 1 and 2 coincident
         else:
             return CubicBezierType.arch
