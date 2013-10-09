@@ -45,7 +45,7 @@ def cubic_bezier(p0, p1, p2, p3, color = 'k', linewidth=1, alpha=1,
                  capstyle='butt', joinstyle='round'):
     """ """
 
-    verts = np.array([p0, p1, p2, p3]).reshape(4,2)
+    verts = np.array([p0,p1,p2,p3]).reshape(4,2)
     codes = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4 ]
     path = Path(verts, codes)
     patch = patches.PathPatch(path,
@@ -125,12 +125,13 @@ def figure(width=800, height=800, on_key=None):
 if __name__ == '__main__':
     from distance import interpolate_path, polyline_to_cubic
     from cubic_bezier import CubicBezier
-
+    from vec2 import vec2
+    from bezier_type import cubic_bezier_type
 
     def on_key(*args):
 
-        points = np.random.randint(100,700,8)
-        C = CubicBezier(*points)
+        P = np.random.randint(100,700,(4,2))
+        C = CubicBezier(*P)
 
         plt.cla()
         plt.ion()
@@ -141,24 +142,31 @@ if __name__ == '__main__':
         # P = np.array(P)
         # polyline(P, linewidth=100, alpha=.25)
         # plt.scatter(P[:,0], P[:,1], s=25,
-        #             edgecolor='k', facecolor='w', zorder=10, lw=.5)
+        #             edgecolor='k', facecolor='w', zorder=10, lw=.1)
 
-        P = C.flatten_iterative(flatness=.125, angle=10)
+        P = C.flatten_iterative(flatness=.125, angle=15)
         P = np.array(P)
-        print len(P)
         polyline(P, linewidth=100, alpha=.1)
         plt.scatter(P[:,0], P[:,1], s=25, edgecolor='k', facecolor='w', zorder=10, lw=.5)
 
-        # P = C.flatten_recursive(flatness=.5, angle=10) 
+        # P = C.flatten_recursive(flatness=.125, angle=10) 
         # P = np.array(P)
-        # print len(P)
         # polyline(P, linewidth=100, alpha=.1)
         # plt.scatter(P[:,0], P[:,1], s=25, edgecolor='k', facecolor='w', zorder=10, lw=.5)
 
-        # A = C.flatten_behdad_arc(0.125)
-        # polyarc(A, linewidth=100, alpha=.1)
+        #A = C.flatten_behdad_arc(0.125)
+        #polyarc(A, linewidth=100, alpha=.1)
 
-        
+        print "%d,%d %d,%d %d,%d, %d,%d : %s" % (
+            C.p0[0],C.p0[1],
+            C.p1[0],C.p1[1],
+            C.p2[0],C.p2[1],
+            C.p3[0],C.p3[1],
+            cubic_bezier_type( vec2(C.p0[0],C.p0[1]),
+                                         vec2(C.p1[0],C.p1[1]),
+                                         vec2(C.p2[0],C.p2[1]),
+                                         vec2(C.p3[0],C.p3[1]) ))
+
 
         plt.ioff()
 

@@ -85,8 +85,7 @@ if not os.path.exists(filename):
     E1 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
-        p0,p1,p2,p3 = curves[i]
-        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        C = CubicBezier(*curves[i])
         P = C.flatten_forward_iterative(n=n1)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
         E1.append(d)
@@ -106,8 +105,7 @@ if not os.path.exists(filename):
     E2 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
-        p0,p1,p2,p3 = curves[i]
-        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        C = CubicBezier(*curves[i])
         P = C.flatten_forward_iterative(n=n2)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
         E2.append(d)
@@ -126,8 +124,7 @@ if not os.path.exists(filename):
     E3 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
-        p0,p1,p2,p3 = curves[i]
-        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        C = CubicBezier(*curves[i])
         P = C.flatten_iterative(flatness=flatness, angle=angle)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
         E3.append(d)
@@ -146,8 +143,7 @@ if not os.path.exists(filename):
     E4 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
-        p0,p1,p2,p3 = curves[i]
-        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        C = CubicBezier(*curves[i])
         P = C.flatten_recursive(flatness=flatness, angle=angle)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
         E4.append(d)
@@ -167,8 +163,7 @@ if not os.path.exists(filename):
     E5 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
-        p0,p1,p2,p3 = curves[i]
-        C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+        C = CubicBezier(*curves[i])
         P = C.flatten_behdad_arc(flatness=flatness)
         d = distance.polyarc_to_cubic(P, p0, p1, p2, p3, n=100)
         E5.append(d)
@@ -291,11 +286,11 @@ fig.savefig("arc-iterative-size.pdf", dpi=72)
 plt.show()
 
 fig = histogram_error(E1, "Forward iterative (n=25)")
-fig.savefig("forwar-iterative-25-error.pdf", dpi=72)
+fig.savefig("forward-iterative-25-error.pdf", dpi=72)
 plt.show()
 
 fig = histogram_error(E2, "Forward iterative (n=50)")
-fig.savefig("forwar-iterative-50-error.pdf", dpi=72)
+fig.savefig("forward-iterative-50-error.pdf", dpi=72)
 plt.show()
 
 fig = histogram_error(E3, "Smart iterative")

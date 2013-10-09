@@ -45,8 +45,7 @@ n1, n2 = 25, 50
 # -------------------------------------
 t_start = time.clock()
 for i in range(n):
-    p0,p1,p2,p3 = curves[i]
-    C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+    C = CubicBezier(*curves[i])
     C.flatten_forward_iterative(n=n1)
 t_end = time.clock()
 t_mean = 1000 * (t_end - t_start)/float(n)
@@ -56,8 +55,7 @@ print "Forward iterative (n=%d): %.3f ms" % (n1, t_mean)
 # -------------------------------------
 t_start = time.clock()
 for i in range(n):
-    p0,p1,p2,p3 = curves[i]
-    C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+    C = CubicBezier(*curves[i])
     C.flatten_forward_iterative(n=n2)
 t_end = time.clock()
 t_mean = 1000 * (t_end - t_start)/float(n)
@@ -68,8 +66,7 @@ print "Forward iterative (n=%d): %.3f ms" % (n2, t_mean)
 # -------------------------------------
 t_start = time.clock()
 for i in range(n):
-    p0,p1,p2,p3 = curves[i]
-    C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+    C = CubicBezier(*curves[i])
     C.flatten_iterative(flatness=flatness, angle=angle)
 t_end = time.clock()
 t_mean = 1000 * (t_end - t_start)/float(n)
@@ -79,8 +76,7 @@ print "Smart iterative: %.3f ms" % (t_mean)
 # -------------------------------------
 t_start = time.clock()
 for i in range(n):
-    p0,p1,p2,p3 = curves[i]
-    C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+    C = CubicBezier(*curves[i])
     C.flatten_recursive(flatness=flatness, angle=angle)
 t_end = time.clock()
 t_mean = 1000 * (t_end - t_start)/float(n)
@@ -90,8 +86,7 @@ print "Recursive: %.3f ms" % (t_mean)
 # -------------------------------------
 t_start = time.clock()
 for i in range(n):
-    p0,p1,p2,p3 = curves[i]
-    C = CubicBezier(p0[0],p0[1],p1[0],p1[1],p2[0],p2[1],p3[0],p3[1])
+    C = CubicBezier(*curves[i])
     C.flatten_behdad_arc(flatness=flatness)
 t_end = time.clock()
 t_mean = 1000 * (t_end - t_start)/float(n)
