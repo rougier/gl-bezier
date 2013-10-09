@@ -229,10 +229,7 @@ def polyarc_to_cubic(arcs, p0, p1, p2, p3, n=100):
     for i,p in enumerate(P):
         dmin = 1e9
         for arc in arcs:
-            center,radius,angle0,angle1,negative,a = arc
-            if negative:
-               angle0, angle1 = angle1, angle0
-            d = a.distance_to_point (behdad.Point(*p))
+            d = arc.distance_to_point (behdad.Point(*p))
             dmin = min(d,dmin)
         D[i] = dmin
     return D.mean(), D.std(), len(arcs)

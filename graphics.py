@@ -89,15 +89,25 @@ def polyarc(arcs, color = 'b', linewidth=1, alpha=1,
     """ """
 
     for arc in arcs:
-        center,radius, angle0, angle1, negative, a = arc
-        angle0 = 180*angle0/math.pi
-        angle1 = 180*angle1/math.pi
-        if negative:
-            angle0, angle1 = angle1, angle0
-        arc = Arc(center, 2*radius, 2*radius, 0, angle0, angle1,
-                  color=color, linewidth = linewidth, alpha=alpha)
+        if abs(arc.d) < 1e-5:
+            verts = [(arc.p0.x,arc.p0.y), (arc.p1.x,arc.p1.y)]
+            codes = [Path.MOVETO, Path.LINETO]
+            path = Path(verts, codes)
+            arc = patches.PathPatch(path,
+                                    linewidth = linewidth,
+                                    edgecolor = color,
+                                    facecolor = 'None',
+                                    alpha     = alpha)
+        else:
+            center,radius, angle0, angle1, negative = arc.to_conventional()
+            angle0 = 180*angle0/math.pi
+            angle1 = 180*angle1/math.pi
+            if negative:
+                angle0, angle1 = angle1, angle0
+            arc = Arc(center, 2*radius, 2*radius, 0, angle0, angle1,
+                      color=color, linewidth = linewidth, alpha=alpha)
         arc.set_path_effects([PathEffects.Stroke(capstyle=capstyle,
-                                               joinstyle=joinstyle )])
+                                                 joinstyle=joinstyle )])
         plt.gca().add_artist(arc)
     plt.xticks([])
     plt.yticks([])

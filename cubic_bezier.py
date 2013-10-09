@@ -372,7 +372,7 @@ class CubicBezier(object):
 
 	arcs, error = splinefunc (b, flatness)
 	for arc in arcs:
-            A.append(arc.to_conventional())
+            A.append(arc)
         return A
 
 

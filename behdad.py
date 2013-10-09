@@ -124,7 +124,7 @@ class Arc:
         angle0 = (self.p0 - center).angle ()
         angle1 = (self.p1 - center).angle ()
         negative = self.d < 0
-        return (center.x,center.y),radius,angle0,angle1,negative,self
+        return (center.x,center.y),radius,angle0,angle1,negative
 
     def radius(self):
         return abs((self.p1-self.p0).len() / (2. * sin2atan (self.d)))
@@ -210,7 +210,6 @@ class Bezier:
 
         p0, p1, p2, p3 = self.p0, self.p1, self.p2, self.p3
 
-        # BUG: t0==1.0 for [4, 43, 4, 18, 4, 31, 4, 38]
         p01 = p0.lerp (t0, p1)
         p12 = p1.lerp (t0, p2)
         p23 = p2.lerp (t0, p3)
@@ -303,12 +302,11 @@ class ArcBezierErrorApproximatorBehdad:
 
         # If straight line, return the max ortho deviation.
         if abs (a.d) < 1e-6:
-            return ea + v.dy #()
+            return ea + v.dy
 
         # We made sure that a.d < 1
         tan_half_alpha = abs (tan2atan (a.d))
 
-        # BUG: v.dy = 0 for [42, 23, 36, 24, 19, 46, 44, 36]
         tan_v = v.dx / v.dy
 
         if abs (tan_v) <= tan_half_alpha:
@@ -389,13 +387,14 @@ class ArcsBezierApproximatorSpringSystem:
 
         for s in range (max_jiggle):
 
+            if 0.0 in errors:
+                bias = sum (errors) / len (errors)
+                errors = [e + bias for e in errors]
+
             total = 0.
             for i in range (n):
                 l = ts[i + 1] - ts[i]
-                if errors[i]:
-                    k_inv = l * (errors[i] ** -.3)
-                else:
-                    k_inv = 0.0
+                k_inv = l * (errors[i] ** -.3)
                 total += k_inv
                 errors[i] = k_inv
 
@@ -420,7 +419,9 @@ if __name__ == "__main__":
 
     #b = Bezier (Point(8, 21), Point(5, 17), Point(13, 27), Point(33, 48))
     #b = Bezier (Point(38, 23), Point(44, 23), Point(13, 25), Point(10, 2))
-    b = Bezier (Point(33, 8), Point(41, 30), Point(38, 0), Point(32, 32))
+    #b = Bezier (Point(33, 8), Point(41, 30), Point(38, 0), Point(32, 32))
+    #b = Bezier (Point(42, 23), Point(36, 24), Point(19, 46), Point(44, 36))
+    b = Bezier (Point(4, 43), Point(4, 18), Point(4, 31), Point(4, 36))
 
     errfunc = ArcBezierErrorApproximatorBehdad (MaxDeviationApproximatorExact ())
     apprfunc = ArcBezierApproximatorMidpointTwoPart (errfunc)
