@@ -85,6 +85,7 @@ if not os.path.exists(filename):
     E1 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
+        p0,p1,p2,p3 = curves[i]
         C = CubicBezier(*curves[i])
         P = C.flatten_forward_iterative(n=n1)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
@@ -105,6 +106,7 @@ if not os.path.exists(filename):
     E2 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
+        p0,p1,p2,p3 = curves[i]
         C = CubicBezier(*curves[i])
         P = C.flatten_forward_iterative(n=n2)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
@@ -124,6 +126,7 @@ if not os.path.exists(filename):
     E3 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
+        p0,p1,p2,p3 = curves[i]
         C = CubicBezier(*curves[i])
         P = C.flatten_iterative(flatness=flatness, angle=angle)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
@@ -143,6 +146,7 @@ if not os.path.exists(filename):
     E4 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
+        p0,p1,p2,p3 = curves[i]
         C = CubicBezier(*curves[i])
         P = C.flatten_recursive(flatness=flatness, angle=angle)
         d = distance.polyline_to_cubic(P, p0, p1, p2, p3, n=100)
@@ -163,6 +167,7 @@ if not os.path.exists(filename):
     E5 = []
     for i in range(NTESTS):
         update_progress(i/float(NTESTS))
+        p0,p1,p2,p3 = curves[i]
         C = CubicBezier(*curves[i])
         P = C.flatten_behdad_arc(flatness=flatness)
         d = distance.polyarc_to_cubic(P, p0, p1, p2, p3, n=100)
