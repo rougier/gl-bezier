@@ -288,9 +288,6 @@ class ArcBezierErrorApproximatorBehdad:
         v0 = v0.rebase (b)
         v1 = v1.rebase (b)
 
-        # TODO if either v0 or v1 says we extend beyond the arc
-        # boundaries, well, handle that!
-
         v = Vector (self.MaxDeviationApproximator (v0.dx, v1.dx),
                     self.MaxDeviationApproximator (v0.dy, v1.dy))
 
@@ -298,19 +295,20 @@ class ArcBezierErrorApproximatorBehdad:
         if a.d * a.d > 1. - 1e-4:
             return ea + v.len ()
 
+        # If the wedge doesn't contain control points, default to weak bound.
+        if not a.wedge_contains_point (b0.p1) or not a.wedge_contains_point (b0.p2):
+            return ea + v.len ()
+
+        # If straight line, return the max ortho deviation.
+        if abs (a.d) < 1e-6:
+            return ea + v.dy ()
+
         # We made sure that a.d < 1
         tan_half_alpha = abs (tan2atan (a.d))
 
-        # If v.dy == 0, perturb just a bit.
-        if abs (v.dy) < 1e-6:
-             # TODO Figure this one out.
-             v.dy = 1e-6
-
         tan_v = v.dx / v.dy
 
-        # TODO Double check these
-        if abs (a.d) < 1e-6 or abs (tan_v) <= tan_half_alpha:
-            # TODO May be able to return ea if a.d is about zero?
+        if abs (tan_v) <= tan_half_alpha:
             return ea + v.len ()
 
         c2 = (a.p1 - a.p0).len () / 2
@@ -414,7 +412,9 @@ class ArcsBezierApproximatorSpringSystem:
 
 if __name__ == "__main__":
 
-    b = Bezier (Point(0,0), Point(0,1), Point(1,1), Point(1,0))
+    #b = Bezier (Point(8, 21), Point(5, 17), Point(13, 27), Point(33, 48))
+    #b = Bezier (Point(38, 23), Point(44, 23), Point(13, 25), Point(10, 2))
+    b = Bezier (Point(33, 8), Point(41, 30), Point(38, 0), Point(32, 32))
 
     errfunc = ArcBezierErrorApproximatorBehdad (MaxDeviationApproximatorExact ())
     apprfunc = ArcBezierApproximatorMidpointTwoPart (errfunc)
@@ -422,9 +422,9 @@ if __name__ == "__main__":
 
     #print apprfunc (b)
 
-    tolerance = .001
+    tolerance = .125
     arcs, error = splinefunc (b, tolerance)
     print len (arcs), error
 
     for arc in arcs:
-        print arc.to_conventional()
+        print arc
