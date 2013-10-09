@@ -45,6 +45,9 @@ class CubicBezier(object):
         self.x2, self.y2 = float(x2), float(y2)
         self.x3, self.y3 = float(x3), float(y3)
  
+    def __repr__ (self):
+        return "Bezier(%s,%s,%s,%s)" % (self.p0, self.p1, self.p2, self.p3)
+
     @property
     def p0(self):
         return vec2(self.x0,self.y0)
@@ -117,8 +120,16 @@ class CubicBezier(object):
         r = b*b - 4*a*c
         if r >= 0 and a:
             r = math.sqrt(r)
-            ip1 = (-b + r) / (2*a)
-            ip2 = (-b - r) / (2*a)
+            ip1 = (-b + r) / (2.*a)
+            ip2 = (-b - r) / (2.*a)
+
+            # Maybe there is better way but 0.0 and 1.0 are problematic
+            # for finding inflection domains
+            if ip1 == 0.0: ip1 = 0.0001
+            if ip2 == 0.0: ip2 = 0.0001
+            if ip1 == 1.0: ip1 = 0.9999
+            if ip2 == 1.0: ip2 = 0.9999
+
             return min(ip1,ip2), max(ip1,ip2)
         return None, None
 
@@ -126,7 +137,8 @@ class CubicBezier(object):
     def inflection_domain(self, t, flatness=0.25):
         """ Determine the domain around an inflection point
             where the curve is flat. """
-
+        #        if t == 1.0: t = 0.9999
+        #        if t == 0.0: t = 0.0001
         _, right = self.split(t)
         ax = -right.x0 + 3*right.x1 - 3*right.x2 + right.x3
         ay = -right.y0 + 3*right.y1 - 3*right.y2 + right.y3
@@ -162,12 +174,14 @@ class CubicBezier(object):
             if not norm:
                 break
             s3 = abs((self.x2-self.x0)*dy-(self.y2-self.y0)*dx)/norm
+            if not s3:
+                break
             t = 2*math.sqrt(flatness /(3*s3))
             if t > 1:
                 break
 
             # Check angle is below tolerance
-            for i in xrange(20):
+            for i in xrange(50):
                 left, right = self.split(t)
                 if left.angle() > angle:
                    t /= 1.5
@@ -254,12 +268,16 @@ class CubicBezier(object):
         t1_minus, t1_plus = -1,-1
         t2_minus, t2_plus = +2,+2
         T = self.inflection_points()
+        #print "t1,t2:", T
+
         if T[0]:
-            t1_minus, t1_plus = self.inflection_domain(T[0],flatness)
+            t1_minus, t1_plus = self.inflection_domain(T[0], flatness)
         if T[1]:
             t2_minus, t2_plus = self.inflection_domain(T[1], flatness)
+        #print "t1+,t1-:", t1_minus, t1_plus
+        #print "t2+,t2-:", t2_minus, t2_plus
 
-        # Split the two domaisn if they overlap
+        # Split the two domains if they overlap
         if t1_minus < t2_minus < t1_plus:
             t1_plus, t2_minus = t2_minus, t1_plus
 
@@ -285,6 +303,10 @@ class CubicBezier(object):
         t2_cross_start = t2_minus < 0 < t2_plus < 1
         t2_cross_end   = 0 < t2_minus < 1 < t2_plus
         t2_cross       = t2_cross_start or t2_cross_end
+
+        #print t1_in, t2_in
+        #print "t1+,t1-:", t1_minus, t1_plus
+        #print "t2+,t2-:", t2_minus, t2_plus
 
         tmp = CubicBezier( (self.x0,self.y0), (self.x1,self.y1),
                            (self.x2,self.y2), (self.x3,self.y3))
