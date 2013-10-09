@@ -144,7 +144,7 @@ if __name__ == '__main__':
         # plt.scatter(P[:,0], P[:,1], s=25,
         #             edgecolor='k', facecolor='w', zorder=10, lw=.1)
 
-        P = C.flatten_iterative(flatness=.125, angle=15)
+        P = C.flatten_iterative(flatness=.125, angle=10)
         P = np.array(P)
         polyline(P, linewidth=100, alpha=.1)
         plt.scatter(P[:,0], P[:,1], s=25, edgecolor='k', facecolor='w', zorder=10, lw=.5)
@@ -157,16 +157,14 @@ if __name__ == '__main__':
         #A = C.flatten_behdad_arc(0.125)
         #polyarc(A, linewidth=100, alpha=.1)
 
-        print "%d,%d %d,%d %d,%d, %d,%d : %s" % (
-            C.p0[0],C.p0[1],
-            C.p1[0],C.p1[1],
-            C.p2[0],C.p2[1],
-            C.p3[0],C.p3[1],
+        print "[%d,%d %d,%d %d,%d, %d,%d] : %s" % (
+            C.p0[0],C.p0[1], C.p1[0],C.p1[1],
+            C.p2[0],C.p2[1], C.p3[0],C.p3[1],
             cubic_bezier_type( vec2(C.p0[0],C.p0[1]),
-                                         vec2(C.p1[0],C.p1[1]),
-                                         vec2(C.p2[0],C.p2[1]),
-                                         vec2(C.p3[0],C.p3[1]) ))
-
+                               vec2(C.p1[0],C.p1[1]),
+                               vec2(C.p2[0],C.p2[1]),
+                               vec2(C.p3[0],C.p3[1]) ))
+        print '%d points generated' % len(P)
 
         plt.ioff()
 
