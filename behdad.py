@@ -207,8 +207,10 @@ class Bezier:
         return Bezier (p0, p01, p012, p0123), Bezier (p0123, p123, p23, p3)
 
     def segment (self, t0, t1):
+
         p0, p1, p2, p3 = self.p0, self.p1, self.p2, self.p3
 
+        # BUG: t0==1.0 for [4, 43, 4, 18, 4, 31, 4, 38]
         p01 = p0.lerp (t0, p1)
         p12 = p1.lerp (t0, p2)
         p23 = p2.lerp (t0, p3)
@@ -301,11 +303,12 @@ class ArcBezierErrorApproximatorBehdad:
 
         # If straight line, return the max ortho deviation.
         if abs (a.d) < 1e-6:
-            return ea + v.dy ()
+            return ea + v.dy #()
 
         # We made sure that a.d < 1
         tan_half_alpha = abs (tan2atan (a.d))
 
+        # BUG: v.dy = 0 for [42, 23, 36, 24, 19, 46, 44, 36]
         tan_v = v.dx / v.dy
 
         if abs (tan_v) <= tan_half_alpha:
@@ -389,7 +392,10 @@ class ArcsBezierApproximatorSpringSystem:
             total = 0.
             for i in range (n):
                 l = ts[i + 1] - ts[i]
-                k_inv = l * (errors[i] ** -.3)
+                if errors[i]:
+                    k_inv = l * (errors[i] ** -.3)
+                else:
+                    k_inv = 0.0
                 total += k_inv
                 errors[i] = k_inv
 
