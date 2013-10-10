@@ -99,7 +99,7 @@ class Vector:
     def angle (self):
         return math.atan2 (self.dy, self.dx)
 
-    def perpendicular (self):
+    def ortho (self):
         return Vector (-self.dy, self.dx)
 
     def normalized (self):
@@ -110,7 +110,7 @@ class Vector:
 
     def rebase (self, bx, by = None):
         if by is None:
-            by = bx.perpendicular ()
+            by = bx.ortho ()
 
         return Vector (self * bx, self * by)
 
@@ -134,13 +134,28 @@ class Arc:
 
     def center(self):
         return (self.p0.midpoint(self.p1)) + \
-               (self.p1-self.p0).perpendicular()/(2. * tan2atan(self.d))
+               (self.p1-self.p0).ortho()/(2. * tan2atan(self.d))
 
     def tangents(self):
+        x = self.p1.x - self.p0.x
+        y = self.p1.y - self.p0.y
+
+        d = (1 - self.d*self.d) * .5
+        dpx = x * d
+        dpy = y * d
+
+        d = -self.d
+        ppx = -y * d
+        ppy = x * d
+
+        return Vector(dpx+ppx, dpy+ppy), Vector(dpx-ppx, dpy-ppy)
+
+        # Here's the original, slower code:
         dp = (self.p1 - self.p0) * .5
-        pp = dp.perpendicular () * -sin2atan (self.d)
+        pp = dp.ortho () * -sin2atan (self.d)
         dp = dp * cos2atan (self.d)
         return dp + pp, dp - pp
+
 
     def wedge_contains_point(self,p):
         t0,t1 = self.tangents ()
@@ -156,7 +171,7 @@ class Arc:
         if self.wedge_contains_point (p):
             if abs (self.d) < 1e-5:
                 # Return distance to line
-                pp = (self.p1 - self.p0).perpendicular ().normalized ()
+                pp = (self.p1 - self.p0).ortho ().normalized ()
                 return abs ((p - self.p0) * pp)
             else:
                 c = self.center ()
@@ -181,12 +196,15 @@ class Arc:
         d = self.d
 
         dp = self.p1 - self.p0
-        pp = dp.perpendicular ()
+        pp = dp.ortho ()
 
         error = dp.len () * (abs (d) ** 5) / (54 * (1 + d*d))
 
-        p0s = self.p0 + dp * ((1 - d*d) / 3) - pp * (2 * d / 3)
-        p1s = self.p1 - dp * ((1 - d*d) / 3) - pp * (2 * d / 3)
+        dp *= (1 - d*d) / 3
+        pp *= 2 * d / 3
+
+        p0s = self.p0 + dp - pp
+        p1s = self.p1 - dp - pp
 
         return Bezier (self.p0, p0s, p1s, self.p1), error
 
@@ -311,7 +329,7 @@ class ArcBezierErrorApproximatorBehdad:
         v = Vector (self.MaxDeviationApproximator (v0.dx, v1.dx),
                     self.MaxDeviationApproximator (v0.dy, v1.dy))
 
-        # Edge cases: If d*d is too close to being 1 default to a weak bound.
+        # Edge cases: If d*d is too large default to a weak bound.
         if a.d * a.d > 1. - 1e-4:
             return ea + v.len ()
 
@@ -323,7 +341,7 @@ class ArcBezierErrorApproximatorBehdad:
         if abs (a.d) < 1e-6:
             return ea + v.dy
 
-        # We made sure that a.d < 1
+        # We made sure that abs(a.d) < 1
         tan_half_alpha = abs (tan2atan (a.d))
 
         tan_v = v.dx / v.dy
@@ -331,7 +349,7 @@ class ArcBezierErrorApproximatorBehdad:
         if abs (tan_v) <= tan_half_alpha:
             return ea + v.len ()
 
-        c2 = (a.p1 - a.p0).len () / 2
+        c2 = (a.p1 - a.p0).len () * .5
         r = a.radius ()
 
         eb = Vector (c2 + v.dx, c2 / tan_half_alpha + v.dy).len () - r
@@ -439,21 +457,22 @@ class ArcsBezierApproximatorSpringSystem:
 if __name__ == "__main__":
 
     test_beziers = [
-        [[8, 21], [5, 17], [13, 27], [33, 48]],
-        [[38, 23], [44, 23], [13, 25], [10, 2]],
-        [[33, 8], [41, 30], [38, 0], [32, 32]],
-        [[42, 23], [36, 24], [19, 46], [44, 36]],
-        [[4, 43], [4, 18], [4, 31], [4, 36]],
-        [[39, 24], [21, 24], [23, 24], [3, 24]],
-        [[41, 28], [2, 11], [25, 11], [18, 15]],
-        [[48, 13], [2, 47], [37, 43], [23, 35]],
-        [[11, 17], [44, 49], [4, 30], [1, 44]],
-        [[18, 4], [38, 23], [30, 21], [38, 35]],
-        [[24, 46], [1, 40], [20, 20], [19, 4]],
-        [[11, 8], [18, 17], [15, 4], [10, 45]],
-        [[44, 6], [23, 6], [11, 33], [1, 48]],
-        [[13, 47], [27, 32], [27, 11], [44, 4]],
-        [[33, 14], [20, 20], [8, 32], [4, 27]],
+        ((8, 21), (5, 17), (13, 27), (33, 48)),
+        ((38, 23), (44, 23), (13, 25), (10, 2)),
+        ((33, 8), (41, 30), (38, 0), (32, 32)),
+        ((42, 23), (36, 24), (19, 46), (44, 36)),
+        ((4, 43), (4, 18), (4, 31), (4, 36)),
+        ((39, 24), (21, 24), (23, 24), (3, 24)),
+        ((41, 28), (2, 11), (25, 11), (18, 15)),
+        ((48, 13), (2, 47), (37, 43), (23, 35)),
+        ((11, 17), (44, 49), (4, 30), (1, 44)),
+        ((18, 4), (38, 23), (30, 21), (38, 35)),
+        ((24, 46), (1, 40), (20, 20), (19, 4)),
+        ((11, 8), (18, 17), (15, 4), (10, 45)),
+        ((44, 6), (23, 6), (11, 33), (1, 48)),
+        ((13, 47), (27, 32), (27, 11), (44, 4)),
+        ((33, 14), (20, 20), (8, 32), (4, 27)),
+        ((170, 660), (170, 660), (660, 510), (540, 600)),
     ]
 
     errfunc = ArcBezierErrorApproximatorBehdad (MaxDeviationApproximatorExact ())
