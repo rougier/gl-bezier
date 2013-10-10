@@ -114,11 +114,13 @@ class CubicBezier(object):
     def segment(self, t0, t1):
         """ Extract a segment of t curve """
 
+        p0,p1,p2,p3 = self.p0,self.p1,self.p2,self.p3
+
         u0, u1 = 1.0 - t0, 1.0 - t1
-        a = self.p0*u0*u0 + self.p1*2*t0*u0 + self.p2*t0*t0
-        b = self.p0*u1*u1 + self.p1*2*t1*u1 + self.p2*t1*t1
-        c = self.p1*u0*u0 + self.p2*2*t0*u0 + self.p3*t0*t0
-        d = self.p1*u1*u1 + self.p2*2*t1*u1 + self.p3*t1*t1
+        a = p0*u0*u0 + p1*2*t0*u0 + p2*t0*t0
+        b = p0*u1*u1 + p1*2*t1*u1 + p2*t1*t1
+        c = p1*u0*u0 + p2*2*t0*u0 + p3*t0*t0
+        d = p1*u1*u1 + p2*2*t1*u1 + p3*t1*t1
         return CubicBezier(a*u0+c*t0, a*u1+c*t1, b*u0+d*t0, b*u1+d*t1)
         
 
@@ -179,13 +181,13 @@ class CubicBezier(object):
     def angle(self):
         """ Compute angle betwenn (p0,p1) and (p2,p3) """
         
-        return angle(self.p1-self.p0, self.p3-self.p2)
-        #dx0 = self.x1-self.x0
-        #dy0 = self.y1-self.y0
-        #dx1 = self.x3-self.x2
-        #dy1 = self.y3-self.y2
-        #angle = math.atan2(abs(dx0*dy1-dy0*dx1), dx0*dx1+dy0*dy1)
-        #return angle
+        #return angle(self.p1-self.p0, self.p3-self.p2)
+        dx0 = self.x1-self.x0
+        dy0 = self.y1-self.y0
+        dx1 = self.x3-self.x2
+        dy1 = self.y3-self.y2
+        angle = math.atan2(abs(dx0*dy1-dy0*dx1), dx0*dx1+dy0*dy1)
+        return angle
 
 
     def flatten(self, flatness=0.25, angle=15):
