@@ -137,10 +137,25 @@ class Arc:
                (self.p1-self.p0).perpendicular()/(2. * tan2atan(self.d))
 
     def tangents(self):
+        x = self.p1.x - self.p0.x
+        y = self.p1.y - self.p0.y
+
+        d = (1 - self.d*self.d) * .5
+        dpx = x * d
+        dpy = y * d
+
+        d = -self.d
+        ppx = -y * d
+        ppy = x * d
+
+        return Vector(dpx+ppx, dpy+ppy), Vector(dpx-ppx, dpy-ppy)
+
+        # Here's the original, slower code:
         dp = (self.p1 - self.p0) * .5
         pp = dp.perpendicular () * -sin2atan (self.d)
         dp = dp * cos2atan (self.d)
         return dp + pp, dp - pp
+
 
     def wedge_contains_point(self,p):
         t0,t1 = self.tangents ()
