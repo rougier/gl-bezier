@@ -35,7 +35,7 @@ from cubic_bezier import CubicBezier
 
 # Measure errors on 10,000 curves
 np.random.seed(1)
-n = 10000
+n = 1000
 curves = np.random.randint(100,700,(n,4,2))
 flatness = 0.125
 angle = 15
