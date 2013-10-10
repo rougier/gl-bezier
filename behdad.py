@@ -99,7 +99,7 @@ class Vector:
     def angle (self):
         return math.atan2 (self.dy, self.dx)
 
-    def perpendicular (self):
+    def ortho (self):
         return Vector (-self.dy, self.dx)
 
     def normalized (self):
@@ -110,7 +110,7 @@ class Vector:
 
     def rebase (self, bx, by = None):
         if by is None:
-            by = bx.perpendicular ()
+            by = bx.ortho ()
 
         return Vector (self * bx, self * by)
 
@@ -134,7 +134,7 @@ class Arc:
 
     def center(self):
         return (self.p0.midpoint(self.p1)) + \
-               (self.p1-self.p0).perpendicular()/(2. * tan2atan(self.d))
+               (self.p1-self.p0).ortho()/(2. * tan2atan(self.d))
 
     def tangents(self):
         x = self.p1.x - self.p0.x
@@ -152,7 +152,7 @@ class Arc:
 
         # Here's the original, slower code:
         dp = (self.p1 - self.p0) * .5
-        pp = dp.perpendicular () * -sin2atan (self.d)
+        pp = dp.ortho () * -sin2atan (self.d)
         dp = dp * cos2atan (self.d)
         return dp + pp, dp - pp
 
@@ -171,7 +171,7 @@ class Arc:
         if self.wedge_contains_point (p):
             if abs (self.d) < 1e-5:
                 # Return distance to line
-                pp = (self.p1 - self.p0).perpendicular ().normalized ()
+                pp = (self.p1 - self.p0).ortho ().normalized ()
                 return abs ((p - self.p0) * pp)
             else:
                 c = self.center ()
@@ -196,7 +196,7 @@ class Arc:
         d = self.d
 
         dp = self.p1 - self.p0
-        pp = dp.perpendicular ()
+        pp = dp.ortho ()
 
         error = dp.len () * (abs (d) ** 5) / (54 * (1 + d*d))
 
