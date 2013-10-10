@@ -200,8 +200,11 @@ class Arc:
 
         error = dp.len () * (abs (d) ** 5) / (54 * (1 + d*d))
 
-        p0s = self.p0 + dp * ((1 - d*d) / 3) - pp * (2 * d / 3)
-        p1s = self.p1 - dp * ((1 - d*d) / 3) - pp * (2 * d / 3)
+        dp *= (1 - d*d) / 3
+        pp *= 2 * d / 3
+
+        p0s = self.p0 + dp - pp
+        p1s = self.p1 - dp - pp
 
         return Bezier (self.p0, p0s, p1s, self.p1), error
 
@@ -326,7 +329,7 @@ class ArcBezierErrorApproximatorBehdad:
         v = Vector (self.MaxDeviationApproximator (v0.dx, v1.dx),
                     self.MaxDeviationApproximator (v0.dy, v1.dy))
 
-        # Edge cases: If d*d is too close to being 1 default to a weak bound.
+        # Edge cases: If d*d is too large default to a weak bound.
         if a.d * a.d > 1. - 1e-4:
             return ea + v.len ()
 
@@ -338,7 +341,7 @@ class ArcBezierErrorApproximatorBehdad:
         if abs (a.d) < 1e-6:
             return ea + v.dy
 
-        # We made sure that a.d < 1
+        # We made sure that abs(a.d) < 1
         tan_half_alpha = abs (tan2atan (a.d))
 
         tan_v = v.dx / v.dy
@@ -346,7 +349,7 @@ class ArcBezierErrorApproximatorBehdad:
         if abs (tan_v) <= tan_half_alpha:
             return ea + v.len ()
 
-        c2 = (a.p1 - a.p0).len () / 2
+        c2 = (a.p1 - a.p0).len () * .5
         r = a.radius ()
 
         eb = Vector (c2 + v.dx, c2 / tan_half_alpha + v.dy).len () - r
