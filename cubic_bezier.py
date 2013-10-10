@@ -38,11 +38,23 @@ class CubicBezier(object):
     P(t) = (1-t)^3*P0 + 3*(1-t)^2*t*P1 + 3(1-t)*t*t*P2 + t^3*P3
     """
 
-    def __init__(self, (x0,y0)=(0,0), (x1,y1)=(0,0), (x2,y2)=(0,0), (x3,y3)=(0,0)):
+    def __init__(self, (x0,y0)=(0,0), (x1,y1)=(1,1), (x2,y2)=(2,2), (x3,y3)=(3,0)):
         """ """
+
         self.x0, self.y0 = float(x0), float(y0)
-        self.x1, self.y1 = float(x1), float(y1)
-        self.x2, self.y2 = float(x2), float(y2)
+
+        if x0 != x1 or y0 != y1:
+            self.x1, self.y1 = float(x1), float(y1)
+        else:
+            self.x1 = float(x0 + 0.0001*(x2-x1))
+            self.y1 = float(y0 + 0.0001*(y2-y1))
+
+        if x2 != x3 or y2 != y3:
+            self.x2, self.y2 = float(x2), float(y2)
+        else:
+            self.x2 = float(x3 - 0.0001*(x2-x1))
+            self.y2 = float(y3 - 0.0001*(y2-y1))
+
         self.x3, self.y3 = float(x3), float(y3)
  
     def __repr__ (self):
@@ -99,69 +111,81 @@ class CubicBezier(object):
         right.y3 = self.y3        
         return left, right
 
+    def segment(self, t0, t1):
+        """ Extract a segment of t curve """
 
-    def segment(self, t1, t2):
-        """ Segment a cubic bezier curve between t1 and t2 """
-
-        _,right = self.split(t1)
-        left,_= right.split((t2-t1)/(1-t1))
-        return left
+        u0, u1 = 1.0 - t0, 1.0 - t1
+        a = self.p0*u0*u0 + self.p1*2*t0*u0 + self.p2*t0*t0
+        b = self.p0*u1*u1 + self.p1*2*t1*u1 + self.p2*t1*t1
+        c = self.p1*u0*u0 + self.p2*2*t0*u0 + self.p3*t0*t0
+        d = self.p1*u1*u1 + self.p2*2*t1*u1 + self.p3*t1*t1
+        return CubicBezier(a*u0+c*t0, a*u1+c*t1, b*u0+d*t0, b*u1+d*t1)
+        
 
 
     def inflection_points(self):
         """ Find inflection points """
 
-        A = -  self.p0 + 3*self.p1 - 3*self.p2 + self.p3
-        B =  3*self.p0 - 6*self.p1 + 3*self.p2
-        C = -3*self.p0 + 3*self.p1
-        a = 3*cross(A,B)
-        b = 3*cross(A,C)
-        c =   cross(B,C)
-        r = b*b - 4*a*c
-        if r >= 0 and a:
-            r = math.sqrt(r)
-            ip1 = (-b + r) / (2.*a)
-            ip2 = (-b - r) / (2.*a)
+        ax = -self.x0 + 3*self.x1 - 3*self.x2 + self.x3
+        ay = -self.y0 + 3*self.y1 - 3*self.y2 + self.y3
+        bx = 3*self.x0 - 6*self.x1 + 3*self.x2
+        by = 3*self.y0 - 6*self.y1 + 3*self.y2
+        cx = -3*self.x0 + 3*self.x1
+        cy = -3*self.y0 + 3*self.y1
 
-            # Maybe there is better way but 0.0 and 1.0 are problematic
-            # for finding inflection domains
-            if ip1 == 0.0: ip1 = 0.0001
-            if ip2 == 0.0: ip2 = 0.0001
-            if ip1 == 1.0: ip1 = 0.9999
-            if ip2 == 1.0: ip2 = 0.9999
+        ab = ay*bx-ax*by
+        bc = by*cx-bx*cy
+        ac = ay*cx-ax*cy
 
-            return min(ip1,ip2), max(ip1,ip2)
+        if not ab:
+            return -bc/(3*ac), None
+        tcusp = -0.5 * ac/ab
+        d = tcusp*tcusp - bc/(3*ab)
+        if d > 0:
+            d = math.sqrt(d)
+            t1, t2 = tcusp - d, tcusp + d
+            if   t1 == 0.0: t1 = 0.001
+            elif t1 == 1.0: t1 = 0.999
+            if   t2 == 0.0: t2 = 0.001
+            elif t2 == 1.0: t2 = 0.999
+            return t1,t2
+        elif d == 0.0:
+            return tcusp, tcusp
         return None, None
 
 
     def inflection_domain(self, t, flatness=0.25):
         """ Determine the domain around an inflection point
             where the curve is flat. """
-        #        if t == 1.0: t = 0.9999
-        #        if t == 0.0: t = 0.0001
-        _, right = self.split(t)
-        ax = -right.x0 + 3*right.x1 - 3*right.x2 + right.x3
-        ay = -right.y0 + 3*right.y1 - 3*right.y2 + right.y3
-        ex = 3 * (right.x1 - right.x2)
-        ey = 3 * (right.y1 - right.y2)
-        ex2ey2 = ex * ex + ey * ey
-        if not ex2ey2:
+        
+        epsilon = 1e-5
+        if abs(t - 1.0) > epsilon:
+            _, right = self.split(t)
+        else:
+            right = self.segment(1.0,2.0)
+        dx = right.x1 - right.x0
+        dy = right.y1 - right.y0
+        norm = math.hypot(dx,dy)
+        if not norm:
             return t,t
-
-        s4 = abs(6. * (ey * ax - ex * ay) / math.sqrt(ex2ey2))
-        tf = math.pow(9. * flatness / s4, 1./3.)
-        return t-tf*(1-t), t+tf*(1-t)
+        s4 = abs((self.x3-self.x0)*dy-(self.y3-self.y0)*dx)/norm
+        tf = math.pow( flatness / s4, 1./3.)
+        if abs(t - 1.0) > epsilon:
+            return t-tf*(1-t), t+tf*(1-t)
+        else:
+            return 1.0-epsilon*tf, 1.0+epsilon*tf,
 
 
     def angle(self):
         """ Compute angle betwenn (p0,p1) and (p2,p3) """
-
-        dx0 = self.x1-self.x0
-        dy0 = self.y1-self.y0
-        dx1 = self.x3-self.x2
-        dy1 = self.y3-self.y2
-        angle = math.atan2(abs(dx0*dy1-dy0*dx1), dx0*dx1+dy0*dy1)
-        return angle
+        
+        return angle(self.p1-self.p0, self.p3-self.p2)
+        #dx0 = self.x1-self.x0
+        #dy0 = self.y1-self.y0
+        #dx1 = self.x3-self.x2
+        #dy1 = self.y3-self.y2
+        #angle = math.atan2(abs(dx0*dy1-dy0*dx1), dx0*dx1+dy0*dy1)
+        #return angle
 
 
     def flatten(self, flatness=0.25, angle=15):
@@ -173,18 +197,19 @@ class CubicBezier(object):
             norm = math.hypot(dx,dy)
             if not norm:
                 break
+
             s3 = abs((self.x2-self.x0)*dy-(self.y2-self.y0)*dx)/norm
             if not s3:
                 break
-            t = 2*math.sqrt(flatness /(3*s3))
+            t = 2.0*math.sqrt(flatness /(3*s3))
             if t > 1:
                 break
 
-            # Check angle is below tolerance
+            # Check if angle is below tolerance
             for i in xrange(50):
                 left, right = self.split(t)
                 if left.angle() > angle:
-                   t /= 1.5
+                   t /= 1.75
                 else:
                     break
 
@@ -268,14 +293,16 @@ class CubicBezier(object):
         t1_minus, t1_plus = -1,-1
         t2_minus, t2_plus = +2,+2
         T = self.inflection_points()
-        #print "t1,t2:", T
 
-        if T[0]:
-            t1_minus, t1_plus = self.inflection_domain(T[0], flatness)
-        if T[1]:
-            t2_minus, t2_plus = self.inflection_domain(T[1], flatness)
-        #print "t1+,t1-:", t1_minus, t1_plus
-        #print "t2+,t2-:", t2_minus, t2_plus
+        cusp = None
+        if T[0] and 0 < T[0] < 1 and T[0] == T[1]:
+            cusp = T[0]
+
+        if not cusp:
+            if T[0]:
+                t1_minus, t1_plus = self.inflection_domain(T[0], flatness)
+            if T[1]:
+                t2_minus, t2_plus = self.inflection_domain(T[1], flatness)
 
         # Split the two domains if they overlap
         if t1_minus < t2_minus < t1_plus:
@@ -304,16 +331,18 @@ class CubicBezier(object):
         t2_cross_end   = 0 < t2_minus < 1 < t2_plus
         t2_cross       = t2_cross_start or t2_cross_end
 
-        #print t1_in, t2_in
-        #print "t1+,t1-:", t1_minus, t1_plus
-        #print "t2+,t2-:", t2_minus, t2_plus
-
-        tmp = CubicBezier( (self.x0,self.y0), (self.x1,self.y1),
-                           (self.x2,self.y2), (self.x3,self.y3))
+        tmp = CubicBezier(self.p0, self.p1, self.p2, self.p3)
         points = [(self.x0, self.y0),]
 
+        # Cusp
+        if cusp:
+            left,right = self.split(cusp)
+            points += left.flatten(flatness,angle)
+            points.append(self(cusp)) 
+            points += right.flatten(flatness,angle)
+
         # No inflection points
-        if t1_out and t2_out:
+        elif t1_out and t2_out:
             points += tmp.flatten(flatness,angle)
 
         # One inflection point
@@ -333,7 +362,6 @@ class CubicBezier(object):
                 points.append( self(t1_minus) )
                 points.append( self(t1_plus) )
                 points += right.flatten(flatness, angle)
-
         # Two inflection points
         elif (t1_in or t1_cross_start) and (t2_in or t2_cross_end):
             if not t1_cross_start:
@@ -348,7 +376,6 @@ class CubicBezier(object):
                 middle = self.segment(t1_plus,t2_minus)
                 points += middle.flatten(flatness, angle)
                 points.append( self(t2_minus) )
-
             if not t2_cross_end:
                 points.append( self(t2_plus) )
                 _,right = self.split(t2_plus)
@@ -396,21 +423,3 @@ class CubicBezier(object):
 	for arc in arcs:
             A.append(arc)
         return A
-
-
-# I = self.inflection_points()
-# for t in self.inflection_points():
-#     if t:
-#         t_neg,t_pos = self.inflection_domain(t)
-#         if 0 <= t <= 1:
-#             P = self(t)
-#             plt.scatter([P[0],], [P[1],], s=50,
-#                         edgecolor='r', facecolor='None')
-#             plt.scatter([P[0],], [P[1],], s=50, zorder=10,
-#                         edgecolor='None', facecolor='white',alpha=.5)
-#         if 0 <= t_neg <= 1:
-#             P = self(t_neg)
-#             plt.scatter([P[0],], [P[1],], s=10, color='k')
-#         if 0 <= t_pos <= 1:
-#             P = self(t_pos)
-#             plt.scatter([P[0],], [P[1],], s=10, color='k')
