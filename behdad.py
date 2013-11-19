@@ -34,7 +34,9 @@ def sin2atan(d): return 2 * d / (1. + d*d)
 def cos2atan(d): return (1. - d*d) / (1. + d*d)
 
 
-class Point:
+class Point (object):
+
+    __slots__ = ("x", "y")
 
     def __init__ (self, x, y):
         self.x = float (x)
@@ -66,7 +68,9 @@ class Point:
         if a == 1.0: return Point (other.x, other.y)
         return Point ((1-a) * self.x + a * other.x, (1-a) * self.y + a * other.y)
 
-class Vector:
+class Vector (object):
+
+    __slots__ = ("dx", "dy")
 
     def __init__ (self, dx, dy):
         self.dx = float (dx)
@@ -114,7 +118,9 @@ class Vector:
 
         return Vector (self * bx, self * by)
 
-class Arc:
+class Arc (object):
+
+    __slots__ = ("p0", "p1", "d")
 
     def __init__ (self, p0, p1, d):
         self.p0 = p0
@@ -208,7 +214,9 @@ class Arc:
 
         return Bezier (self.p0, p0s, p1s, self.p1), error
 
-class Bezier:
+class Bezier (object):
+
+    __slots__ = ("p0", "p1", "p2", "p3")
 
     def __init__ (self, p0, p1, p2, p3):
         self.p0 = p0
