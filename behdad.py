@@ -399,11 +399,21 @@ class ArcsBezierApproximatorSpringSystem:
         tolerance = float (tolerance)
 
         min_segments = 1
+	ts = None
 
         # Technically speaking we can bsearch for n.
         for n in range (min_segments, max_segments + 1):
 
-            ts = [float (i) / n for i in range (n)]
+	    if not ts:
+                ts = [float (i) / n for i in range (n)]
+	    else:
+		assert n == len(ts)
+
+		new_ts = []
+		for i in range (len (ts) - 1):
+		    new_ts.append (ts[i] + (ts[i + 1] - ts[i]) * (n - 1 - i) / n)
+		new_ts.insert(0, 0.0)
+		ts = new_ts
             ts.append (1.0) # Do this out of the loop to get real 1.0, not .9999999999999998!
 
             arcs, errors = self.__calc_arcs (b, ts)
