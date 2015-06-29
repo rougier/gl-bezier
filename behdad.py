@@ -100,6 +100,9 @@ class Vector (object):
     def len (self):
         return math.hypot (self.dx, self.dy)
 
+    def len2 (self):
+        return self * self
+
     def angle (self):
         return math.atan2 (self.dy, self.dx)
 
