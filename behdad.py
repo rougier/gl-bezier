@@ -25,6 +25,10 @@ from __future__ import division
 import math
 from collections import namedtuple
 
+def struct (name, members):
+    cls = namedtuple (name, members)
+    cls.__repr__ = lambda self: "%s(%s)" % (name, ','.join(str(s) for s in self))
+    return cls
 
 # returns tan (2 * atan (d))
 def tan2atan(d): return 2 * d / (1. - d*d)
@@ -35,7 +39,7 @@ def sin2atan(d): return 2 * d / (1. + d*d)
 # returns cos (2 * atan (d))
 def cos2atan(d): return (1. - d*d) / (1. + d*d)
 
-class Point (namedtuple ('Point', ('x', 'y'))):
+class Point (struct ('Point', ('x', 'y'))):
 
     def __add__ (self, other):
         return Point (self.x + other.dx, self.y + other.dy)
@@ -57,7 +61,7 @@ class Point (namedtuple ('Point', ('x', 'y'))):
         if a == 1.0: return Point (other.x, other.y)
         return Point ((1-a) * self.x + a * other.x, (1-a) * self.y + a * other.y)
 
-class Vector (namedtuple ('Vector', ('dx', 'dy'))):
+class Vector (struct ('Vector', ('dx', 'dy'))):
 
     def __add__ (self, other):
         return Vector (self.dx + other.dx, self.dy + other.dy)
@@ -101,7 +105,7 @@ class Vector (namedtuple ('Vector', ('dx', 'dy'))):
 
         return Vector (self * bx, self * by)
 
-class Arc (namedtuple ('Arc', ('p0', 'p1', 'd'))):
+class Arc (struct ('Arc', ('p0', 'p1', 'd'))):
 
     def to_conventional(self):
         radius = self.radius()
@@ -190,7 +194,7 @@ class Arc (namedtuple ('Arc', ('p0', 'p1', 'd'))):
 
         return Bezier (self.p0, p0s, p1s, self.p1), error
 
-class Bezier (namedtuple ('Bezier', ('p0', 'p1', 'p2', 'p3'))):
+class Bezier (struct ('Bezier', ('p0', 'p1', 'p2', 'p3'))):
 
     def __call__ (self, t):
         p0, p1, p2, p3 = self.p0, self.p1, self.p2, self.p3
@@ -511,6 +515,7 @@ if __name__ == "__main__":
     total = 0
     for points in test_beziers:
         b = Bezier (*(Point(x,y) for x,y in points))
+	print b
         arcs, error, ts = splinefunc (b, tolerance)
         total += len(arcs)
         print '%2d' % len (arcs), '%.3f' % error, ':'.join(("%.2f" % t)[1:] for t in ts[1:-1])
