@@ -71,6 +71,9 @@ class Vector (namedtuple ('Vector', ('dx', 'dy'))):
         else:
             return Vector (self.dx * other, self.dy * other)
 
+    def cross (self, other):
+            return self.dx * other.dy - self.dy * other.dx
+
     def __truediv__ (self, s):
         return Vector(self.dx/s, self.dy/s)
 
@@ -354,6 +357,11 @@ class ArcsBezierApproximatorSpringSystem:
         self.ArcBezierApproximator = ArcBezierApproximator
 
     def __call__ (self, b, tolerance, max_segments = 100):
+
+        # Handle fully-degenerate cases.
+	v1,v2,v3 = (p - b.p0 for p in b[1:])
+	if not v1.cross(v2) and not v2.cross(v3):
+	    pass # TODO handle degenerate
 
         tolerance = float (tolerance)
 
