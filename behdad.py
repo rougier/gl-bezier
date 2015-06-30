@@ -21,7 +21,9 @@
 # Ported from GLyphy
 #
 
+from __future__ import division
 import math
+from collections import namedtuple
 
 
 # returns tan (2 * atan (d))
@@ -33,20 +35,7 @@ def sin2atan(d): return 2 * d / (1. + d*d)
 # returns cos (2 * atan (d))
 def cos2atan(d): return (1. - d*d) / (1. + d*d)
 
-
-class Point (object):
-
-    __slots__ = ("x", "y")
-
-    def __init__ (self, x, y):
-        self.x = float (x)
-        self.y = float (y)
-
-    def __repr__ (self):
-        return "Point(%g,%g)" % (self.x, self.y)
-
-    def __eq__ (self, other):
-        return self.x == other.x and self.y == other.y
+class Point (namedtuple ('Point', ('x', 'y'))):
 
     def __add__ (self, other):
         return Point (self.x + other.dx, self.y + other.dy)
@@ -68,19 +57,7 @@ class Point (object):
         if a == 1.0: return Point (other.x, other.y)
         return Point ((1-a) * self.x + a * other.x, (1-a) * self.y + a * other.y)
 
-class Vector (object):
-
-    __slots__ = ("dx", "dy")
-
-    def __init__ (self, dx, dy):
-        self.dx = float (dx)
-        self.dy = float (dy)
-
-    def __repr__ (self):
-        return "Vector(%g,%g)" % (self.dx, self.dy)
-
-    def __eq__ (self, other):
-        return self.dx == other.dx and self.dy == other.dy
+class Vector (namedtuple ('Vector', ('dx', 'dy'))):
 
     def __add__ (self, other):
         return Vector (self.dx + other.dx, self.dy + other.dy)
@@ -94,7 +71,7 @@ class Vector (object):
         else:
             return Vector (self.dx * other, self.dy * other)
 
-    def __div__ (self, s):
+    def __truediv__ (self, s):
         return Vector(self.dx/s, self.dy/s)
 
     def len (self):
@@ -121,14 +98,7 @@ class Vector (object):
 
         return Vector (self * bx, self * by)
 
-class Arc (object):
-
-    __slots__ = ("p0", "p1", "d")
-
-    def __init__ (self, p0, p1, d):
-        self.p0 = p0
-        self.p1 = p1
-        self.d = float (d)
+class Arc (namedtuple ('Arc', ('p0', 'p1', 'd'))):
 
     def to_conventional(self):
         radius = self.radius()
@@ -217,18 +187,7 @@ class Arc (object):
 
         return Bezier (self.p0, p0s, p1s, self.p1), error
 
-class Bezier (object):
-
-    __slots__ = ("p0", "p1", "p2", "p3")
-
-    def __init__ (self, p0, p1, p2, p3):
-        self.p0 = p0
-        self.p1 = p1
-        self.p2 = p2
-        self.p3 = p3
-
-    def __repr__ (self):
-        return "Bezier(%s,%s,%s,%s)" % (self.p0, self.p1, self.p2, self.p3)
+class Bezier (namedtuple ('Bezier', ('p0', 'p1', 'p2', 'p3'))):
 
     def __call__ (self, t):
         p0, p1, p2, p3 = self.p0, self.p1, self.p2, self.p3
