@@ -495,11 +495,13 @@ if __name__ == "__main__":
 
     tolerance = .125
 
+    total = 0
     for points in test_beziers:
         b = Bezier (*(Point(x,y) for x,y in points))
         arcs, error, ts = splinefunc (b, tolerance)
-        print len (arcs), error, ts
-        N = 1000
+        total += len(arcs)
+        print '%2d' % len (arcs), '%.3f' % error, ':'.join(("%.2f" % t)[1:] for t in ts[1:-1])
+        N = 100
         for i in range (N + 1):
             t = float (i) / N
             p = b(t)
@@ -508,3 +510,4 @@ if __name__ == "__main__":
                 print t, p, d
                 print arcs
                 assert 0
+    print "Total arcs:", total
